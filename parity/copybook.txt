@@ -1,0 +1,7 @@
+# Copybook-derived field layout for the parity runner.
+# One field per line: name,start(0-based),length,type,scale
+# Mirrors cobol/copybook.cpy OUT-REC. start indexes into each 42-char line.
+ACCOUNT-NO,0,9,numeric,0
+BALANCE,9,11,decimal,2
+INTEREST,20,11,decimal,2
+NEW-BAL,31,11,decimal,2

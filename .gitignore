@@ -1,0 +1,9 @@
+cobol/acct_int
+cobol/OUT-COBOL.DAT
+java/OUT-JAVA.DAT
+parity/OUT-COBOL.DAT
+parity/OUT-JAVA.DAT
+parity/ACCOUNTS.DAT
+evidence/
+*.class
+Twin_wrong.java

@@ -1,0 +1,35 @@
+name: parity-ci
+on: [push]
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install GnuCOBOL
+        run: sudo apt-get update && sudo apt-get install -y gnucobol
+      - name: Generate inputs
+        run: cd parity && java GenInput.java && cp ACCOUNTS.DAT ../cobol/
+      - name: Compile + run COBOL reference
+        working-directory: cobol
+        run: cobc -free -x ACCOUNT-INT.cbl -o acct_int && ./acct_int
+      - name: Run Java twin
+        working-directory: java
+        run: cp ../cobol/ACCOUNTS.DAT . && java AccountInterest.java
+      - name: Parity diff (must pass)
+        working-directory: parity
+        run: |
+          cp ../cobol/OUT-COBOL.DAT .
+          cp ../java/OUT-JAVA.DAT .
+          java ParityRunner.java
+          python3 -c "import json;d=json.load(open('result.json'));assert d['pass'] is True, 'PARITY FAILED';print('parity:',d['parityPercent'],'%')"
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parity-evidence
+          path: parity/result.json
