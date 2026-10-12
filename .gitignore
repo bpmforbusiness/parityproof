@@ -3,7 +3,9 @@ cobol/OUT-COBOL.DAT
 java/OUT-JAVA.DAT
 parity/OUT-COBOL.DAT
 parity/OUT-JAVA.DAT
-parity/ACCOUNTS.DAT
+parity/result.json
+ACCOUNTS.DAT
 evidence/
 *.class
+AccountInterest_wrong.java
 Twin_wrong.java
