@@ -13,3 +13,7 @@ Twin_wrong.java
 
 # Ops helper (posts progress to Drive/group); not part of the project source
 progress_publish.sh
+
+# CI workflow is kept LOCALLY only: pushing it needs a PAT with the `workflow` scope.
+# (Kept out of git so `sync.sh`'s `git add -A` can't stage it and break the push.)
+.github/workflows/ci.yml
