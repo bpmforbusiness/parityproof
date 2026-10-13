@@ -12,6 +12,14 @@ import java.util.List;
  * Reads the same fixed-width ACCOUNTS.DAT and writes OUT-JAVA.DAT with byte-identical
  * field layout, so the parity runner can diff against the COBOL reference output.
  * Copybook: cobol/copybook.cpy — ACCT-NO PIC 9(9), BAL PIC 9(9)V99.
+ *
+ * NOTE — latent truncation hazard, preserved deliberately for parity:
+ * PIC 9(9)V99 maxes at 999,999,999.99. When BAL + INTEREST overflows that width,
+ * COBOL silently truncates the high-order digit(s) (it does NOT raise). For
+ * example 1,034,999,999.99 is stored as 034,999,999.99. zeroPad() reproduces this
+ * high-order truncation exactly rather than failing, so the twin matches COBOL
+ * byte-for-byte even at the field-limit boundary (see parity/GenInput.java,
+ * "overflow-truncation").
  */
 public final class AccountInterest {
 
@@ -48,9 +56,9 @@ public final class AccountInterest {
     /** Render a BigDecimal as zero-padded fixed-width digit string (no decimal point). */
     private static String zeroPad(BigDecimal v, int width) {
         String plain = v.setScale(SCALE, RoundingMode.HALF_UP).toPlainString().replace(".", "");
-        if (plain.length() > width) {
-            throw new IllegalStateException("Value too wide for PIC width " + width + ": " + v);
-        }
+        // COBOL high-order truncation: if the value is too wide for the PIC, silently drop
+        // the digits that don't fit (matches 9(9)V99 overflow behaviour) instead of throwing.
+        if (plain.length() > width) plain = plain.substring(plain.length() - width);
         StringBuilder sb = new StringBuilder(plain);
         while (sb.length() < width) sb.insert(0, '0');
         return sb.toString();

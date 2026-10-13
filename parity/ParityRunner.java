@@ -27,8 +27,24 @@ public final class ParityRunner {
         String outPath = args.length > 2 ? args[2] : "result.json";
 
         List<Field> fields = loadFields("copybook.txt");
-        List<String> cobol = Files.readAllLines(Path.of(cobolPath));
-        List<String> java = Files.readAllLines(Path.of(javaPath));
+
+        // A missing/crashed COBOL or Java output is a clean FAIL, never an uncaught exception.
+        // Generators delete the output files before each run, so a crash leaves them absent
+        // (we never diff against a stale output from a previous run).
+        List<String> cobol = null, java = null;
+        String error = null;
+        try { cobol = readOutput(cobolPath); }
+        catch (IOException e) { error = "COBOL output missing/unreadable (" + cobolPath + ")"; }
+        try { java = readOutput(javaPath); }
+        catch (IOException e) { error = (error == null ? "" : error + "; ") + "Java output missing/unreadable (" + javaPath + ")"; }
+
+        if (cobol == null || java == null) {
+            writeFailed(outPath, cobol, java, error);
+            System.out.println("parity = FAIL (" + error + ")");
+            return;
+        }
+        if (cobol.isEmpty()) { writeFailed(outPath, cobol, java, "COBOL output is empty"); System.out.println("parity = FAIL (COBOL output is empty)"); return; }
+        if (java.isEmpty())  { writeFailed(outPath, cobol, java, "Java output is empty");  System.out.println("parity = FAIL (Java output is empty)");  return; }
 
         int allFields = 0, allPass = 0;
         int matchRows = Math.min(cobol.size(), java.size());
@@ -70,6 +86,25 @@ public final class ParityRunner {
         }
         System.out.println("parity = " + (allPass) + "/" + allFields + " fields | "
                 + (filesEqual ? "" : "LINE-COUNT MISMATCH ") + (root.get("pass").equals(Boolean.TRUE) ? "PASS" : "FAIL"));
+    }
+
+    static List<String> readOutput(String path) throws IOException {
+        return Files.readAllLines(Path.of(path)).stream().filter(l -> !l.isBlank()).toList();
+    }
+
+    /** Write a clean FAIL result.json (missing/crashed/empty output) rather than throwing. */
+    static void writeFailed(String outPath, List<String> cobol, List<String> java, String error) {
+        Map<String, Object> root = new LinkedHashMap<>();
+        root.put("cobolLines", cobol == null ? -1 : cobol.size());
+        root.put("javaLines",  java  == null ? -1 : java.size());
+        root.put("linesEqual", false);
+        root.put("parityPercent", 0);
+        root.put("fieldsPassed", "0/0");
+        root.put("records", new ArrayList<>());
+        root.put("pass", false);
+        root.put("error", error);
+        try (FileWriter w = new FileWriter(outPath)) { w.write(toJson(root)); }
+        catch (IOException ioe) { System.err.println("WARN: could not write " + outPath + ": " + ioe); }
     }
 
     static String field(String line, Field f) {

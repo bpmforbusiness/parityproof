@@ -26,8 +26,13 @@ public final class GenInput {
             new Test("zero-balance",       "000000002", "00000000000"), // 0.00
             new Test("tiny-balance",       "000000003", "00000000005"), // 0.05 -> 0.00175 -> 0.00
             new Test("sub-cent-interest",  "000000004", "00000000003"), // 0.03 -> 0.00105 -> 0.00
-            new Test("near-max-field",     "000000005", "90000000000")  // 900000000.00 -> +31500000.00 = 931500000.00 (fits 9(9)V99)
-        );
+                        new Test("near-max-field",     "000000005", "90000000000"),  // 900000000.00 -> +31500000.00 = 931500000.00 (fits 9(9)V99)
+                        // Latent truncation hazard in the ORIGINAL program, preserved deliberately for parity:
+                        // BAL = 999999999.99 is the max 9(9)V99; NEW-BAL = +35000000.00 = 1,034,999,999.99
+                        // overflows the field, so COBOL silently drops the high-order digit (writes 034,999,999.99).
+                        // The Java twin reproduces this high-order truncation instead of throwing.
+                        new Test("overflow-truncation", "000000009", "99999999999") // 999999999.99 -> NEW-BAL overflows -> truncated
+                    );
         try (BufferedWriter w = new BufferedWriter(new FileWriter("ACCOUNTS.DAT"))) {
             for (Test t : tests) {
                 w.write(t.acct());
