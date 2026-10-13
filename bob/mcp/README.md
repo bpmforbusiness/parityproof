@@ -11,7 +11,7 @@ tools/data beyond the repo. For ParityProof the useful context is:
 | Candidate server | What it would give Bob | When / why |
 |---|---|---|
 | **Local filesystem / repo context** | Read `cobol/`, `catalog/`, `parity/copybook.txt` precisely | Always — helps Bob cite source lines |
-| **CardDemo data (a database)** | Card transaction sample data for the posting program | Only after Task-5 program is chosen + CardDemo license confirmed |
+| **Transaction sample data (a database)** | Realistic input for TXN-POST edge cases | Only if we move past the generated fixtures; any third-party dataset (e.g. AWS CardDemo) needs its license confirmed first |
 
 ## Not configured — deliberately
 - No `mcp.json` / settings entry exists in this repo (nothing to commit).

@@ -7,7 +7,7 @@ only ever commits what a real Bob session produced.
 Where each thing lives HERE vs. WHERE ON THE VM it comes from:
 
 ## 1. Bob session logs / transcripts
-- **Repo target:** `bob/evidence-files/sessions/`  (folder currently empty — PLACEHOLDER)
+- **Repo target:** `bob/evidence-files/sessions/`  (contains only PLACEHOLDER.md)
 - **From the VM:** Bob IDE session history / a chat export of the Ask + Plan + Code
   sessions that produced `java/AccountInterest.java` and the catalog. Export the
   conversation(s) where Bob extracted the rules and generated the Java.
@@ -18,11 +18,15 @@ Where each thing lives HERE vs. WHERE ON THE VM it comes from:
 - **From the VM:** the actual `evidence/hooks/*.log` files produced when Bob edited a
   `java/` or `cobol/` file and the parity hook fired. At least one PASS log and the
   injected-FAIL moment (see run below) if you replicate it on the VM.
-- Also copy the raw ones already in the repo: `evidence/runs/20261013T134034*` (the 83%
+- The hook must be registered in Bob first: merge `bob/hooks/hooks.example.json` into
+  `.bob/settings.json` on the VM. Bob's docs say PostToolUse hooks are non-blocking, so the
+  log is the evidence. Note the one `evidence/hooks/*.log` already in the repo came from
+  running `parity.sh` directly, NOT from a confirmed Bob firing.
+- Also look at the raw ones already in the repo: `evidence/runs/20261013T134034*` (the 83%
   injected-FAIL) is evidence the runner catches divergence — use it in the demo.
 
 ## 3. Screenshots of Bob in action
-- **Repo target:** `bob/evidence-files/screenshots/`  (PLACEHOLDER)
+- **Repo target:** `bob/evidence-files/screenshots/`  (contains only PLACEHOLDER.md)
 - **From the VM:** screenshots of Bob in:
   - **Ask mode** — producing a catalog entry with source-line citations
   - **Plan mode** — the migration plan / scope
@@ -30,7 +34,7 @@ Where each thing lives HERE vs. WHERE ON THE VM it comes from:
   Save as PNGs with descriptive names (e.g. `ask-rule-r001.png`).
 
 ## 4. Bobalytics export
-- **Repo target:** `bob/evidence-files/bobalytics/`  (PLACEHOLDER)
+- **Repo target:** `bob/evidence-files/bobalytics/`  (contains only PLACEHOLDER.md)
 - **From the VM:** the Bobalytics usage/insight export (Bobcoin consumption, activity)
   for this project window — the tool-adoption numbers for the 30% judging criteria.
 

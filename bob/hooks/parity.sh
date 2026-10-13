@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
-# Bob lifecycle hook for ParityProof: compile -> run -> parity, and FAIL LOUDLY
-# on any parity FAIL (non-zero exit blocks the Bob step). Full output is logged to
-# evidence/hooks/<utc-ts>.log so tool adoption is provable, not narrated.
-# Install as `sh .bob/hooks/parity.sh` via a hooks config (see hooks.example.json).
+# ParityProof parity hook: compile -> run -> parity (all programs), exits non-zero on any
+# parity FAIL. Full output is logged to evidence/hooks/<utc-ts>.log so the run is provable.
+#
+# Wiring in Bob (per https://bob.ibm.com/docs/ide/configuration/lifecycle-hooks): hooks live under
+# a "hooks" key in .bob/settings.json (workspace) or ~/.bob/settings/settings.json (global);
+# see hooks.example.json and bob/hooks/README.md. NOTE: as a PostToolUse hook this is
+# NON-BLOCKING — Bob ignores its stdout and exit code (exit 2 only blocks PreToolUse /
+# UserPromptSubmit). The non-zero exit is therefore for CI, the Stop hook's own log, and manual
+# runs; the evidence/hooks/*.log is what shows a FAIL happened.
 set +e
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 TS=$(date -u +%Y%m%dT%H%M%SZ)

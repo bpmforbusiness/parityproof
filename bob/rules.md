@@ -12,8 +12,8 @@ is wrong — do not "fix" the test or the rule catalog to match.
 1. **A change is not done until parity is 100%.** Every edit to `java/` or `cobol/`
    must ship with a parity test run (`bash run.sh`). "Tests pass" is not enough; the
    field-level parity diff against the COBOL reference is the acceptance test.
-2. **Never alter the COBOL reference program's behaviour.** `cobol/ACCOUNT-INT.cbl`
-   is the oracle. Modernize the Java, not the COBOL.
+2. **Never alter the COBOL reference programs' behaviour.** `cobol/*.cbl`
+   (ACCOUNT-INT, TXN-POST) are the oracle. Modernize the Java, not the COBOL.
 3. **Reproduce COBOL semantics exactly, including bugs.** Preserve COBOL `ROUNDED`
    semantics and its **high-order truncation on field overflow** (PIC 9(9)V99 silently
    drops digits that don't fit). These are latent hazards in the original program and
@@ -22,15 +22,20 @@ is wrong — do not "fix" the test or the rule catalog to match.
    rule can be traced to the exact COBOL statement that produces it.
 
 ## Numeric mapping rules
-5. **COMP-3 / packed decimal (PIC 9(n)V99) -> java.math.BigDecimal**.
+5. **COMP-3 / packed decimal and `PIC 9(n)V99` -> java.math.BigDecimal**. (COMP-3 is a storage
+   format, not a different number: the value maps to BigDecimal either way. The parity files
+   are DISPLAY text, so COMP-3 fields live in working storage — see `TXN-POST`.)
    - Integer part + implied decimals -> `new BigDecimal(BigInteger, scale)`.
+   - `SIGN LEADING SEPARATE` -> a leading `+`/`-` char then the digits; a zero result is `+`.
    - Never use `double`/`float` — money must not lose precision.
    - Set a rounding mode explicitly at every `setScale` call; use `RoundingMode.HALF_UP`
      in this project because that matches `COBOL ROUNDED` (COBOL rounds on the final
      intermediate to the target PIC decimal places).
 6. **Truncation:** if a value is wider than its PIC (e.g. 10 integer digits into
    `9(9)V99`), COBOL drops the high-order digits. The Java `zeroPad` must reproduce
-   this (keep the low-order `width` digits) — **do not throw or silently zero-fill**.
+   this (keep the low-order `width` digits, keep the sign) — **do not throw or silently
+   zero-fill**. Applies to COMP-3 targets too (observed: GnuCOBOL stores
+   999999999.99 + 0.01 into `S9(9)V99 COMP-3` as 0.00).
 
 ## Copybook mapping rules
 7. **Copybook -> Java record class.** Each `01` group becomes a `record`/POJO with one
