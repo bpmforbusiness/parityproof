@@ -1,0 +1,21 @@
+== 1/5 generate inputs (edge cases) ==
+generated 6 input records -> ACCOUNTS.DAT
+generated 8 input records -> TXNS.DAT
+== 2/5 compile + run COBOL reference (GnuCOBOL) ==
+ACCOUNT-INT.cbl:49: warning: line not terminated by a newline [-Wmissing-newline]
+   47 |     CLOSE IN-FILE.
+   48 |     CLOSE OUT-FILE.
+   49 >     STOP RUN.<EOF>
+COBOL reference output OUT-COBOL.DAT: 6 records
+COBOL reference output OUT-TXN-COBOL.DAT: 8 records
+== 3/5 run Java modernized twins ==
+wrote OUT-JAVA.DAT (6 records)
+wrote OUT-TXN-JAVA.DAT (8 records)
+== 4/5 field-level parity diff (per program) ==
+ACCOUNT-INT: parity = 24/24 fields | PASS
+TXN-POST: parity = 40/40 fields | PASS
+overall parity = 64/64 fields (100.0%) | PASS
+== 5/5 capture timestamped evidence ==
+evidence -> /Users/abdulqaadir/Desktop/claudeCodeWorkspace/parityproof/evidence/runs/20261013T142633Z  (latest -> evidence/latest)
+== parity gate ==
+PARITY PASS ✅
