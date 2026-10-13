@@ -37,7 +37,7 @@ catalog/    ACCOUNT-INT.md · TXN-POST.md — business-rule catalogs (DRAFT, for
 dashboard/  index.html — static page: overall + per-program parity, per-field rate, mismatch drill-down
 deck/       pitch_deck.pdf + index.html source — 8-slide submission deck
 .github/    workflows/ci.yml — runs run.sh, fails the build unless parity is 100%
-            (committed locally; pushing needs a workflow-scoped token; never run on GitHub yet)
+            (kept LOCAL and gitignored — pushing it needs a workflow-scoped token; never run on GitHub yet)
 Dockerfile  GnuCOBOL + Java reference image (not built or tested here)
 run.sh      the whole pipeline, all programs; non-zero exit unless every program is at 100%
 ```
