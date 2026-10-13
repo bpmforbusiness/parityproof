@@ -1,9 +1,10 @@
 # ACCOUNT-INT — Business Rule Catalog
 
-> **Status: DRAFT for business review (Karthik).** Auto-drafted from `cobol/ACCOUNT-INT.cbl`
-> by Bob (cobol-explainer skill) and not yet reviewed for business sense against the
-> intended lending/banking context. Review each entry, then flip this header to
-> "Reviewed".
+> **Status: DRAFT for business review (Karthik).** Drafted from `cobol/ACCOUNT-INT.cbl` by
+> Claude Code, following the format in `bob/skills/cobol-explainer/SKILL.md`. It was **not**
+> produced by a Bob session (any Bob-generated version must come from the Oracle VM — see
+> `bob/EVIDENCE-TODO.md`). Source-line citations were checked against the file; business
+> meaning has not been reviewed. Review each entry, then flip this header to "Reviewed".
 
 **Program:** ACCOUNT-INT — a monthly interest run over a fixed-width account file.
 **What it does:** for each account, computes interest at a fixed 3.5% on the balance,
