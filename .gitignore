@@ -1,11 +1,15 @@
+# Built binaries + per-run working outputs (regenerated each run, never committed)
 cobol/acct_int
 cobol/OUT-COBOL.DAT
 java/OUT-JAVA.DAT
 parity/OUT-COBOL.DAT
 parity/OUT-JAVA.DAT
-parity/result.json
 ACCOUNTS.DAT
-evidence/
+
+# Compiled classes + injected-mutation scratch twins (kept out of the repo)
 *.class
 AccountInterest_wrong.java
 Twin_wrong.java
+
+# Ops helper (posts progress to Drive/group); not part of the project source
+progress_publish.sh

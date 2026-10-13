@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # ParityProof — run the full COBOL->Java parity pipeline locally.
 # Prereqs: gnucobol (cobc), Java 21.  No Docker needed for the local slice.
+# Every run is captured timestamped under evidence/runs/<UTC-ts>/ with evidence/latest
+# pointing at the newest run, so the dashboard + CI read one stable location.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -26,17 +28,21 @@ echo "== 4/5 field-level parity diff =="
 cd "$ROOT/parity"
 java ParityRunner.java
 
-echo "== 5/5 result =="
-mkdir -p "$ROOT/evidence"
-cp result.json "$ROOT/evidence/result.json"
-cp "$ROOT/cobol/OUT-COBOL.DAT" "$ROOT/evidence/out-cobol.dat"
-cp "$ROOT/java/OUT-JAVA.DAT"   "$ROOT/evidence/out-java.dat"
-cp "$ROOT/cobol/ACCOUNTS.DAT"  "$ROOT/evidence/accounts.dat"
-echo "artifacts -> $ROOT/evidence/"
+echo "== 5/5 capture timestamped evidence =="
+TS=$(date -u +%Y%m%dT%H%M%SZ)
+RUN="$ROOT/evidence/runs/$TS"
+mkdir -p "$RUN"
+cp result.json "$RUN/result.json"
+cp "$ROOT/cobol/OUT-COBOL.DAT" "$RUN/out-cobol.dat"
+cp "$ROOT/java/OUT-JAVA.DAT"   "$RUN/out-java.dat"
+cp "$ROOT/cobol/ACCOUNTS.DAT"  "$RUN/accounts.dat"
+rm -rf "$ROOT/evidence/latest"
+cp -r "$RUN" "$ROOT/evidence/latest"
+echo "evidence -> $RUN  (latest -> evidence/latest)"
 
 echo "== parity gate =="
-if python3 -c "import json,sys; sys.exit(0 if json.load(open('$ROOT/parity/result.json'))['pass'] else 1)"; then
+if python3 -c "import json,sys; sys.exit(0 if json.load(open('$RUN/result.json'))['pass'] else 1)"; then
   echo "PARITY PASS ✅"
 else
-  echo "PARITY FAIL ❌ (see result.json)"; exit 1
+  echo "PARITY FAIL ❌ (see $RUN/result.json)"; exit 1
 fi
