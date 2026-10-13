@@ -1,0 +1,12 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "^(write_file|apply_patch)$",
+        "hooks": [
+          { "type": "command", "command": "sh .bob/hooks/parity.sh", "timeout": 120 }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+== 1/5 generate inputs (edge cases) ==
+generated 6 input records -> ACCOUNTS.DAT
+== 2/5 compile + run COBOL reference (GnuCOBOL) ==
+ACCOUNT-INT.cbl:49: warning: line not terminated by a newline [-Wothers]
+<command-line>: warning: "_FORTIFY_SOURCE" redefined
+<command-line>: note: this is the location of the previous definition
+COBOL reference output: 6 records
+== 3/5 run Java modernized twin ==
+wrote OUT-JAVA.DAT (6 records)
+== 4/5 field-level parity diff ==
+parity = 24/24 fields | PASS
+== 5/5 capture timestamped evidence ==
+evidence -> /home/ubuntu/projects/parityproof/evidence/runs/20261013T134403Z  (latest -> evidence/latest)
+== parity gate ==
+PARITY PASS ✅
