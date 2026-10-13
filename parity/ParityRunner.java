@@ -10,9 +10,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Parity runner: byte-for-byte field-level diff between the COBOL reference output
- * (OUT-COBOL.DAT) and the Java modernized output (OUT-JAVA.DAT), using the copybook
- * layout in copybook.txt. Writes result.json with per-record / per-field results.
+ * Parity runner: byte-for-byte field-level diff between the COBOL reference output and the
+ * Java modernized output for every program listed in programs.txt, using each program's
+ * copybook-derived layout. Writes result.json (overall + per-program + per-record/field) and
+ * exits non-zero if any program is not at 100% parity.
+ *
+ * programs.txt: one program per line -> name,layout,cobol-output,java-output
+ *
+ * A missing/crashed/empty COBOL or Java output is a clean FAIL for that program, never an
+ * uncaught exception. The run scripts delete outputs before each run, so a crash leaves them
+ * absent and we never diff against a stale file from a previous run.
  */
 public final class ParityRunner {
 
@@ -22,34 +29,69 @@ public final class ParityRunner {
     }
 
     public static void main(String[] args) throws Exception {
-        String cobolPath = args.length > 0 ? args[0] : "../cobol/OUT-COBOL.DAT";
-        String javaPath = args.length > 1 ? args[1] : "../java/OUT-JAVA.DAT";
-        String outPath = args.length > 2 ? args[2] : "result.json";
+        String manifest = args.length > 0 ? args[0] : "programs.txt";
+        String outPath = args.length > 1 ? args[1] : "result.json";
 
-        List<Field> fields = loadFields("copybook.txt");
+        List<Map<String, Object>> programs = new ArrayList<>();
+        int allFields = 0, allPass = 0;
+        boolean allOk = true;
+        String topError = null;
 
-        // A missing/crashed COBOL or Java output is a clean FAIL, never an uncaught exception.
-        // Generators delete the output files before each run, so a crash leaves them absent
-        // (we never diff against a stale output from a previous run).
+        List<String[]> specs = new ArrayList<>();
+        try {
+            specs = loadManifest(manifest);
+            if (specs.isEmpty()) topError = "no programs listed in " + manifest;
+        } catch (IOException e) {
+            topError = "cannot read " + manifest + ": " + e.getMessage();
+        }
+
+        for (String[] s : specs) {
+            Map<String, Object> p = compare(s[0], s[1], s[2], s[3]);
+            programs.add(p);
+            allFields += (int) p.get("fieldsTotal");
+            allPass += (int) p.get("fieldsPass");
+            if (!p.get("pass").equals(Boolean.TRUE)) allOk = false;
+            System.out.println(s[0] + ": parity = " + p.get("fieldsPassed") + " fields | "
+                    + (p.get("pass").equals(Boolean.TRUE) ? "PASS" : "FAIL"
+                       + (p.containsKey("error") ? " (" + p.get("error") + ")" : "")));
+        }
+        if (topError != null) { allOk = false; System.out.println("parity = FAIL (" + topError + ")"); }
+
+        Map<String, Object> root = new LinkedHashMap<>();
+        root.put("pass", allOk && topError == null);
+        root.put("parityPercent", allFields == 0 ? 0 : Math.round(allPass * 10000.0 / allFields) / 100.0);
+        root.put("fieldsPassed", allPass + "/" + allFields);
+        if (topError != null) root.put("error", topError);
+        root.put("programs", programs);
+        try (FileWriter w = new FileWriter(outPath)) { w.write(toJson(root)); }
+
+        System.out.println("overall parity = " + root.get("fieldsPassed") + " fields (" + root.get("parityPercent")
+                + "%) | " + (root.get("pass").equals(Boolean.TRUE) ? "PASS" : "FAIL"));
+        if (!root.get("pass").equals(Boolean.TRUE)) System.exit(1);
+    }
+
+    /** Diff one program. Never throws: any I/O problem becomes a FAIL with an error message. */
+    static Map<String, Object> compare(String name, String layoutPath, String cobolPath, String javaPath) {
+        Map<String, Object> p = new LinkedHashMap<>();
+        p.put("name", name);
+        List<Field> fields;
+        try { fields = loadFields(layoutPath); }
+        catch (IOException | RuntimeException e) { return failed(p, null, null, 0, "layout unreadable (" + layoutPath + "): " + e); }
+
         List<String> cobol = null, java = null;
         String error = null;
         try { cobol = readOutput(cobolPath); }
         catch (IOException e) { error = "COBOL output missing/unreadable (" + cobolPath + ")"; }
         try { java = readOutput(javaPath); }
         catch (IOException e) { error = (error == null ? "" : error + "; ") + "Java output missing/unreadable (" + javaPath + ")"; }
+        if (error == null && cobol.isEmpty()) error = "COBOL output is empty";
+        if (error == null && java.isEmpty())  error = "Java output is empty";
+        if (error != null) return failed(p, cobol, java, fields.size(), error);
 
-        if (cobol == null || java == null) {
-            writeFailed(outPath, cobol, java, error);
-            System.out.println("parity = FAIL (" + error + ")");
-            return;
-        }
-        if (cobol.isEmpty()) { writeFailed(outPath, cobol, java, "COBOL output is empty"); System.out.println("parity = FAIL (COBOL output is empty)"); return; }
-        if (java.isEmpty())  { writeFailed(outPath, cobol, java, "Java output is empty");  System.out.println("parity = FAIL (Java output is empty)");  return; }
-
-        int allFields = 0, allPass = 0;
-        int matchRows = Math.min(cobol.size(), java.size());
+        int total = 0, pass = 0;
+        int rows = Math.min(cobol.size(), java.size());
         List<Map<String, Object>> records = new ArrayList<>();
-        for (int i = 0; i < matchRows; i++) {
+        for (int i = 0; i < rows; i++) {
             String c = cobol.get(i), j = java.get(i);
             Map<String, Object> rec = new LinkedHashMap<>();
             rec.put("record", i + 1);
@@ -57,54 +99,49 @@ public final class ParityRunner {
             List<Map<String, Object>> flds = new ArrayList<>();
             for (Field f : fields) {
                 String cv = field(c, f), jv = field(j, f);
-                boolean pass = cv.equals(jv);
-                if (pass) rowPass++;
+                boolean ok = cv.equals(jv);
+                if (ok) rowPass++;
                 Map<String, Object> ff = new LinkedHashMap<>();
-                ff.put("name", f.name); ff.put("pass", pass);
-                if (!pass) { ff.put("cobol", cv); ff.put("java", jv); }
+                ff.put("name", f.name); ff.put("pass", ok);
+                if (!ok) { ff.put("cobol", cv); ff.put("java", jv); }
                 flds.add(ff);
             }
             rec.put("fields", flds);
             rec.put("rowPass", rowPass + "/" + fields.size());
             records.add(rec);
-            allFields += fields.size();
-            allPass += rowPass;
+            total += fields.size();
+            pass += rowPass;
         }
-        boolean filesEqual = cobol.size() == java.size();
+        boolean linesEqual = cobol.size() == java.size();
+        p.put("cobolLines", cobol.size());
+        p.put("javaLines", java.size());
+        p.put("linesEqual", linesEqual);
+        p.put("parityPercent", total == 0 ? 0 : Math.round(pass * 10000.0 / total) / 100.0);
+        p.put("fieldsPassed", pass + "/" + total);
+        p.put("fieldsPass", pass);
+        p.put("fieldsTotal", total);
+        p.put("records", records);
+        p.put("pass", linesEqual && pass == total);
+        return p;
+    }
 
-        Map<String, Object> root = new LinkedHashMap<>();
-        root.put("cobolLines", cobol.size());
-        root.put("javaLines", java.size());
-        root.put("linesEqual", filesEqual);
-        root.put("parityPercent", allFields == 0 ? 0 : Math.round(allPass * 10000.0 / allFields) / 100.0);
-        root.put("fieldsPassed", allPass + "/" + allFields);
-        root.put("records", records);
-        root.put("pass", filesEqual && allPass == allFields);
-
-        try (FileWriter w = new FileWriter(outPath)) {
-            w.write(toJson(root));
-        }
-        System.out.println("parity = " + (allPass) + "/" + allFields + " fields | "
-                + (filesEqual ? "" : "LINE-COUNT MISMATCH ") + (root.get("pass").equals(Boolean.TRUE) ? "PASS" : "FAIL"));
+    /** A program with an unreadable output scores 0 of one record's worth of fields, so it can never read as 100%. */
+    static Map<String, Object> failed(Map<String, Object> p, List<String> cobol, List<String> java, int expectedFields, String error) {
+        p.put("cobolLines", cobol == null ? -1 : cobol.size());
+        p.put("javaLines",  java  == null ? -1 : java.size());
+        p.put("linesEqual", false);
+        p.put("parityPercent", 0);
+        p.put("fieldsPassed", "0/" + expectedFields);
+        p.put("fieldsPass", 0);
+        p.put("fieldsTotal", expectedFields);
+        p.put("records", new ArrayList<>());
+        p.put("pass", false);
+        p.put("error", error);
+        return p;
     }
 
     static List<String> readOutput(String path) throws IOException {
         return Files.readAllLines(Path.of(path)).stream().filter(l -> !l.isBlank()).toList();
-    }
-
-    /** Write a clean FAIL result.json (missing/crashed/empty output) rather than throwing. */
-    static void writeFailed(String outPath, List<String> cobol, List<String> java, String error) {
-        Map<String, Object> root = new LinkedHashMap<>();
-        root.put("cobolLines", cobol == null ? -1 : cobol.size());
-        root.put("javaLines",  java  == null ? -1 : java.size());
-        root.put("linesEqual", false);
-        root.put("parityPercent", 0);
-        root.put("fieldsPassed", "0/0");
-        root.put("records", new ArrayList<>());
-        root.put("pass", false);
-        root.put("error", error);
-        try (FileWriter w = new FileWriter(outPath)) { w.write(toJson(root)); }
-        catch (IOException ioe) { System.err.println("WARN: could not write " + outPath + ": " + ioe); }
     }
 
     static String field(String line, Field f) {
@@ -112,6 +149,18 @@ public final class ParityRunner {
             return line.substring(f.start, f.start + f.len + 1); // tolerate a literal decimal point
         }
         return f.start + f.len <= line.length() ? line.substring(f.start, f.start + f.len) : "<LINE-SHORT>";
+    }
+
+    static List<String[]> loadManifest(String path) throws IOException {
+        List<String[]> out = new ArrayList<>();
+        for (String line : Files.readAllLines(Path.of(path))) {
+            line = line.trim();
+            if (line.isEmpty() || line.startsWith("#")) continue;
+            String[] p = line.split(",");
+            if (p.length != 4) throw new IOException("bad manifest line: " + line);
+            out.add(p);
+        }
+        return out;
     }
 
     static List<Field> loadFields(String path) throws IOException {
@@ -133,7 +182,6 @@ public final class ParityRunner {
         write(s, o);
         return s.toString();
     }
-    @SuppressWarnings("unchecked")
     static void write(StringBuilder s, Object o) {
         if (o instanceof Map<?, ?> m) {
             s.append('{');

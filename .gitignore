@@ -1,10 +1,15 @@
 # Built binaries + per-run working outputs (regenerated each run, never committed)
 cobol/acct_int
+cobol/txn_post
 cobol/OUT-COBOL.DAT
 java/OUT-JAVA.DAT
 parity/OUT-COBOL.DAT
 parity/OUT-JAVA.DAT
 ACCOUNTS.DAT
+TXNS.DAT
+OUT-TXN-COBOL.DAT
+OUT-TXN-JAVA.DAT
+parity/result.json
 
 # Compiled classes + injected-mutation scratch twins (kept out of the repo)
 *.class

@@ -1,0 +1,8 @@
+# Copybook-derived field layout for TXN-POST (see cobol/txn-post.cpy OUT-REC).
+# One field per line: name,start(0-based),length,type,scale
+# Signed fields are SIGN LEADING SEPARATE: 1 sign char (+/-) followed by the digits.
+ACCOUNT-NO,0,9,numeric,0
+AMOUNT,9,10,signed-decimal,2
+END-BAL,19,12,signed-decimal,2
+OVERDRAFT-FLAG,31,1,char,0
+BATCH-TOTAL,32,12,signed-decimal,2

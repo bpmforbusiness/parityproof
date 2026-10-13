@@ -1,0 +1,4 @@
+# Programs checked by ParityRunner. One per line: name,layout,cobol-output,java-output
+# (paths relative to parity/). Add a line here to put another program under the parity gate.
+ACCOUNT-INT,copybook.txt,../cobol/OUT-COBOL.DAT,../java/OUT-JAVA.DAT
+TXN-POST,copybook-txn-post.txt,../cobol/OUT-TXN-COBOL.DAT,../java/OUT-TXN-JAVA.DAT
