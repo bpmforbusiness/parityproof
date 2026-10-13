@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ParityProof — live parity dashboard</title>
+<title>ParityProof — parity dashboard</title>
 <style>
   :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--txt:#e6edf3;--mut:#8b949e;
         --green:#3fb950;--red:#f85149;--blue:#58a6ff;}
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--txt);padding:28px}
+  body{font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--txt);padding:28px 16px;max-width:1100px;margin:0 auto}
   h1{font-size:22px;margin-bottom:4px}
   .sub{color:var(--mut);margin-bottom:22px}
   .cards{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:22px}
@@ -15,7 +15,8 @@
   .card span{color:var(--mut);font-size:13px}
   .green{color:var(--green)} .red{color:var(--red)}
   h2{font-size:16px;color:var(--blue);margin:22px 0 10px}
-  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line)}
   th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);font-size:14px}
   th{color:var(--mut);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
   tr:last-child td{border-bottom:none}
@@ -26,81 +27,81 @@
 </style></head>
 <body>
   <h1>ParityProof — parity dashboard</h1>
-  <div class="sub">byte-for-byte field parity between the COBOL reference and the Java 21 twin · sources from <code>evidence/latest/result.json</code></div>
+  <div class="sub">byte-for-byte field parity between the COBOL reference and the Java 21 twin · reads <code>evidence/latest/result.json</code></div>
 
   <div class="cards">
-    <div class="card"><b id="pct" class="green">—</b><span>overall field parity</span></div>
+    <div class="card"><b id="pct">—</b><span>overall field parity</span></div>
     <div class="card"><b id="fields">—</b><span>fields passed / total</span></div>
     <div class="card"><b id="status">—</b><span>gate status</span></div>
-    <div class="card"><b id="lines">—</b><span>records (cobol / java)</span></div>
+    <div class="card"><b id="progs">—</b><span>programs passing</span></div>
   </div>
 
   <div id="err"></div>
 
-  <h2>Per-field pass rate (across records)</h2>
-  <table id="byfield"><thead><tr><th>Field</th><th>Pass</th><th>Rate</th></tr></thead><tbody></tbody></table>
+  <h2>Per program</h2>
+  <div class="scroll"><table id="byprog"><thead><tr><th>Program</th><th>Status</th><th>Fields</th><th>Parity</th><th>Records (COBOL / Java)</th></tr></thead><tbody></tbody></table></div>
 
-  <h2>Mismatch drill-down (record → field → values)</h2>
-  <table id="drill"><thead><tr><th>Record</th><th>Field</th><th>COBOL reference</th><th>Java twin</th></tr></thead><tbody></tbody></table>
+  <h2>Per-field pass rate (across records)</h2>
+  <div class="scroll"><table id="byfield"><thead><tr><th>Program</th><th>Field</th><th>Pass</th><th>Rate</th></tr></thead><tbody></tbody></table></div>
+
+  <h2>Mismatch drill-down (program → record → field → values)</h2>
+  <div class="scroll"><table id="drill"><thead><tr><th>Program</th><th>Record</th><th>Field</th><th>COBOL reference</th><th>Java twin</th></tr></thead><tbody></tbody></table></div>
 
 <script>
+// Build DOM with textContent only: values from result.json are never injected as HTML.
+function el(tag, text, cls){ const e=document.createElement(tag); if(text!==undefined) e.textContent=text; if(cls) e.className=cls; return e; }
+function row(tbody, cells){ const tr=document.createElement('tr'); cells.forEach(c=>{ const td=document.createElement('td'); td.appendChild(c instanceof Node?c:document.createTextNode(String(c))); tr.appendChild(td); }); tbody.appendChild(tr); }
+function chip(ok, label){ return el('span', label || (ok?'PASS':'FAIL'), 'chip '+(ok?'pass':'fail')); }
+
 async function main(){
-  try{
-    const candidates = [
-      'evidence/latest/result.json',        // index.html at repo/site root
-      '../evidence/latest/result.json',     // index.html under /dashboard/
-      '/evidence/latest/result.json'        // absolute site-root path
-    ];
-    let d = null, lastErr = null;
-    for (const c of candidates) {
-      try { const r = await fetch(c); if (r.ok) { d = await r.json(); break; } lastErr = 'HTTP ' + r.status + ' for ' + c; }
-      catch (e) { lastErr = e.message + ' for ' + c; }
-    }
-    if (!d) throw new Error(lastErr);
-    render(d);
-  }catch(e){
-    document.getElementById('err').style.display='block';
-    document.getElementById('err').textContent =
-      'Could not load evidence/latest/result.json: ' + e.message +
-      '\n\nThis dashboard must be served from a root where "evidence/latest/result.json" is reachable relative to it. ' +
-      'On GitHub Pages / Azure Static Web Apps, serve the repo root (then index.html can be the site root or under /dashboard/).\n'
-      + 'Check the path in the Fetch URL above if you moved the files.';
+  const candidates = [
+    'evidence/latest/result.json',        // index.html at repo/site root
+    '../evidence/latest/result.json',     // index.html under /dashboard/
+    '/evidence/latest/result.json'        // absolute site-root path
+  ];
+  let d = null, lastErr = null;
+  for (const c of candidates) {
+    try { const r = await fetch(c, {cache:'no-store'}); if (r.ok) { d = await r.json(); break; } lastErr = 'HTTP ' + r.status + ' for ' + c; }
+    catch (e) { lastErr = e.message + ' for ' + c; }
   }
+  if (!d) {
+    const err = document.getElementById('err'); err.style.display='block';
+    err.textContent = 'Could not load evidence/latest/result.json: ' + lastErr +
+      '\n\nServe the repo root (e.g. `python3 -m http.server` from the repo root, GitHub Pages, or Azure Static Web Apps) so evidence/latest/result.json is reachable from this page.';
+    return;
+  }
+  render(d);
 }
+
 function render(d){
+  // Older single-program runs have no "programs" array: treat the whole file as ACCOUNT-INT.
+  const programs = d.programs || [Object.assign({name:'ACCOUNT-INT'}, d)];
+  const totalPass = programs.reduce((a,p)=>a+(p.fieldsPass ?? (parseInt(String(p.fieldsPassed).split('/')[0])||0)),0);
+  const totalAll  = programs.reduce((a,p)=>a+(p.fieldsTotal ?? (parseInt(String(p.fieldsPassed).split('/')[1])||0)),0);
+
   const pct = document.getElementById('pct');
   pct.textContent = (d.parityPercent ?? 0) + '%';
   pct.className = d.pass ? 'green' : 'red';
-  document.getElementById('pct').className = pct.className;
-  document.getElementById('fields').textContent = d.fieldsPassed || '—';
-  document.getElementById('status').innerHTML = d.pass
-    ? '<span class="chip pass">PASS</span>' : (d.error ? '<span class="chip fail">'+d.error+'</span>' : '<span class="chip fail">FAIL</span>');
-  document.getElementById('lines').textContent = (d.cobolLines ?? '?') + ' / ' + (d.javaLines ?? '?');
-  if(d.pass === false && d.error) document.body.insertAdjacentHTML('beforeend','<div id="err" style="display:block">' + d.error + '</div>');
+  document.getElementById('fields').textContent = d.fieldsPassed || (totalPass+'/'+totalAll);
+  const st = document.getElementById('status'); st.textContent=''; st.appendChild(chip(!!d.pass));
+  document.getElementById('progs').textContent = programs.filter(p=>p.pass).length + ' / ' + programs.length;
+  if (d.error) { const err=document.getElementById('err'); err.style.display='block'; err.textContent=d.error; }
 
-  // per-field aggregation
-  const agg = {};
-  (d.records||[]).forEach(rec => (rec.fields||[]).forEach(f => {
-    agg[f.name] = agg[f.name] || {pass:0,total:0};
-    agg[f.name].total++; if(f.pass) agg[f.name].pass++;
-  }));
-  const bf = document.querySelector('#byfield tbody');
-  for(const [name,a] of Object.entries(agg)){
-    const tr = document.createElement('tr');
-    const rate = Math.round(a.pass*100/a.total);
-    tr.innerHTML = '<td>'+name+'</td><td>'+a.pass+' / '+a.total+'</td><td><span class="chip '+(a.pass===a.total?'pass':'fail')+'">'+rate+'%</span></td>';
-    bf.appendChild(tr);
-  }
-  // mismatch drill-down
-  const dr = document.querySelector('#drill tbody');
-  let n=0;
-  (d.records||[]).forEach(rec => (rec.fields||[]).forEach(f => {
-    if(f.pass) return; n++;
-    const tr = document.createElement('tr');
-    tr.innerHTML = '<td>'+rec.record+'</td><td><code>'+f.name+'</code></td><td><code class="green">'+f.cobol+'</code></td><td><code class="red">'+f.java+'</code></td>';
-    dr.appendChild(tr);
-  }));
-  if(!n){ const tr=document.createElement('tr'); tr.innerHTML='<td colspan="4" style="color:var(--mut)">no mismatches — full parity</td>'; dr.appendChild(tr);}
+  const bp = document.querySelector('#byprog tbody'), bf = document.querySelector('#byfield tbody'), dr = document.querySelector('#drill tbody');
+  let mismatches = 0;
+  programs.forEach(p => {
+    row(bp, [p.name, chip(!!p.pass), p.fieldsPassed || '—', (p.parityPercent ?? 0)+'%', (p.cobolLines ?? '?')+' / '+(p.javaLines ?? '?')]);
+    if (p.error) row(bp, [el('span',''), el('span','error','red'), el('code', p.error), '', '']);
+    const agg = {};
+    (p.records||[]).forEach(rec => (rec.fields||[]).forEach(f => {
+      const a = agg[f.name] = agg[f.name] || {pass:0,total:0};
+      a.total++; if (f.pass) a.pass++;
+      if (!f.pass) { mismatches++; row(dr, [p.name, rec.record, el('code', f.name), el('code', f.cobol, 'green'), el('code', f.java, 'red')]); }
+    }));
+    Object.entries(agg).forEach(([name,a]) =>
+      row(bf, [p.name, el('code', name), a.pass+' / '+a.total, chip(a.pass===a.total, Math.round(a.pass*100/a.total)+'%')]));
+  });
+  if (!mismatches) row(dr, [el('span','no mismatches — full parity','')," "," "," "," "]);
 }
 main();
 </script>
