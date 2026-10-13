@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<style>
+  @page { size: 13.333in 7.5in; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html,body { width: 13.333in; height: 7.5in; font-family: 'Segoe UI',Helvetica,Arial,sans-serif; color:#e6edf3; background:#0d1117; }
+  .slide { width: 13.333in; height: 7.5in; padding: 0.55in 0.7in; page-break-after: always; position:relative; overflow:hidden; }
+  .slide:last-child { page-break-after: auto; }
+  .kicker { color:#58a6ff; font-size:13px; font-weight:700; letter-spacing:2px; text-transform:uppercase; }
+  h1 { font-size:40px; line-height:1.12; margin:10px 0 14px; color:#f0f6fc; }
+  h2 { font-size:30px; color:#f0f6fc; margin-bottom:16px; }
+  p.lead { color:#c9d1d9; font-size:18px; line-height:1.45; max-width:11in; }
+  .rule { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:22px; }
+  .card { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:16px; }
+  .card h3 { color:#58a6ff; font-size:17px; margin-bottom:6px; }
+  .card p { color:#c9d1d9; font-size:14.5px; line-height:1.42; }
+  .mega { font-size:52px; font-weight:800; color:#3fb950; }
+  .red { color:#f85149; }
+  .stat { display:flex; gap:26px; margin-top:22px; }
+  .stat .box { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:14px 20px; }
+  .stat .box b { display:block; font-size:22px; color:#58a6ff; }
+  .stat .box span { color:#8b949e; font-size:13px; }
+  ul.pipe { margin-top:16px; columns:2; column-gap:30px; list-style:none; }
+  ul.pipe li { color:#c9d1d9; font-size:15.5px; line-height:1.5; padding-left:18px; position:relative; break-inside:avoid; }
+  ul.pipe li:before { content:"▸"; color:#3fb950; position:absolute; left:0; }
+  .foot { position:absolute; bottom:18px; left:0.7in; right:0.7in; color:#8b949e; font-size:12px; border-top:1px solid #21262d; padding-top:8px; }
+  .pill { display:inline-block; background:#30363d; color:#c9d1d9; border-radius:20px; padding:4px 12px; font-size:12px; margin:3px 3px 0 0; }
+</style></head><body>
+
+<!-- 1 -->
+<div class="slide">
+  <div class="kicker">IBM Bob Hackathon · Track 2 — Modernize What Matters</div>
+  <h1>ParityProof<br></h1>
+  <p class="lead">Modernize COBOL to Java and <b>prove the new code behaves exactly like the original</b> — a copybook-aware runner diffs the COBOL reference and the Java twin field-by-field, on identical inputs.</p>
+  <div class="rule">
+    <div class="card"><h3>✔ It runs</h3><p>Real COBOL compiled under GnuCOBOL; Java 21 twin; edge-case input generator.</p></div>
+    <div class="card"><h3>✔ It proves</h3><p><b>100% field parity</b>, and it catches real divergence (injected rounding bug → 90%, field pinpointed).</p></div>
+    <div class="card"><h3>✔ It is central to IBM Bob</h3><p>Bob extracts the rules, plans the migration, writes the Java — and a hook runs parity after every edit.</p></div>
+  </div>
+  <p class="lead" style="margin-top:24px;font-size:16px;max-width:11in"><b>Team:</b> Abdul Qaadir (Java lead · Bob driver) · Satish (Cloud · CI) · Karthik (Business analysis · story)</p>
+  <div class="foot">github.com/bpmforbusiness/parityproof · CardDemo batch → Java modernization</div>
+</div>
+
+<!-- 2 -->
+<div class="slide">
+  <div class="kicker">The Problem</div>
+  <h2>Banks want to modernize. They're afraid to.</h2>
+  <div class="rule">
+    <div class="card"><h3>80%+ of transactions</h3><p>Run on IBM i / IBM Z, much of it in COBOL batch that has run untouched for decades.</p></div>
+    <div class="card"><h3>Senior COBOL developers are retiring</h3><p>The pattern is a knowledge cliff — the people who understand the business rules are leaving.</p></div>
+    <div class="card"><h3>Modernization risk is the blocker</h3><p>"Tests pass" on generated code means nothing until you've shown the new output matches the old.</p></div>
+  </div>
+  <h2 style="font-size:22px;margin-top:26px;">The question every bank asks first is not "did you generate code?" — it's "is it the same?"</h2>
+</div>
+
+<!-- 3 -->
+<div class="slide">
+  <div class="kicker">Why this wins</div>
+  <h2>Many teams work with Bob. Few prove the output is correct.</h2>
+  <p class="lead" style="font-size:19px">The first thing any bank wants is a guarantee the rewrite is behaviorally identical. We built the mechanism that delivers it.</p>
+  <div class="rule">
+    <div class="card"><h3>Most teams</h3><p>Show Bob generating Java → judge sees code, must trust it.</p></div>
+    <div class="card"><h3>ParityProof</h3><p>Shows Bob generating Java <b style="color:#3fb950">and a running proof it matches the COBOL byte-for-byte</b>.</p></div>
+    <div class="card"><h3>Judging edge</h3><p>Correctness + explainability is the defensible innovation, not the generation itself.</p></div>
+  </div>
+  <div class="stat">
+    <div class="box"><b class="mega">100%</b><span>field parity — 20/20</span></div>
+    <div class="box"><b class="red">90%</b><span>→ FAIL when a rounding slip is injected — field pinpointed</span></div>
+    <div class="box"><b>20/20</b><span>fields diffed on 5 edge-case records</span></div>
+  </div>
+</div>
+
+<!-- 4 -->
+<div class="slide">
+  <div class="kicker">What we built</div>
+  <h2>ParityProof pipeline</h2>
+  <ul class="pipe">
+    <li><b>COBOL reference runtime</b> — GnuCOBOL Docker image runs the original batch on flat-file inputs.</li>
+    <li><b>Business-rule catalog</b> — Bob explains each program; Karthik sanity-checks the rules.</li>
+    <li><b>Java 21 modernized program</b> — Spring Boot CLI job; copybook becomes a fixed-width record class.</li>
+    <li><b>Edge-case input generator</b> — zero/negative balances, half-cent rounding, max field sizes, leap dates, empty files.</li>
+    <li><b>Parity runner</b> — runs both on every input, diffs every field by the copybook layout → results.json.</li>
+    <li><b>CI + dashboard</b> — GitHub Actions fails the build unless parity is 100%; Azure-hosted live dashboard.</li>
+  </ul>
+  <div class="foot">Every output keeps the original fixed-width format so the diff is exact.</div>
+</div>
+
+<!-- 5 -->
+<div class="slide">
+  <div class="kicker">Live proof</div>
+  <h2>Parity catches real bugs</h2>
+  <p class="lead" style="font-size:17px">Interest batch, acct 1: COBOL <span style="color:#3fb950;font-family:monospace">00000043208</span> (432.08). Java with HALF_DOWN rounding: <span style="color:#f85149;font-family:monospace">00000043207</span> (432.07).</p>
+  <div class="stat">
+    <div class="box"><b class="mega">CORRECT</b><span>HALF_UP → 100% pass, 20/20 fields</span></div>
+    <div class="box"><b class="red">INJECTED BUG</b><span>HALF_DOWN → 90% FAIL, INTEREST + NEW-BAL flagged</span></div>
+  </div>
+  <p class="lead" style="margin-top:26px;font-size:17px">One preview: <b>speed of verification</b> — a full COBOL + Java compile-and-parity run completes in seconds in CI, so every Bob edit is checked on the spot via a hook. Usability and performance measured by the runner, not a guess.</p>
+</div>
+
+<!-- 6 -->
+<div class="slide">
+  <div class="kicker">How IBM Bob is central</div>
+  <h2>Bob in the loop at every step</h2>
+  <div class="rule">
+    <div class="card"><h3>Ask — extract rules</h3><p>"COBOL explainer" skill produces a consistent business-rule catalog with source-line citations.</p></div>
+    <div class="card"><h3>Plan — migration plan</h3><p>Per-program plan: copybook → record, COMP-3 → BigDecimal, truncation handling; scope locked with the team.</p></div>
+    <div class="card"><h3>Code — write the Java</h3><p>Bob generates the Java twin; the <b>hook runs the parity suite after every edit</b> so a mismatch fails immediately.</p></div>
+  </div>
+  <div class="rule" style="grid-template-columns:1fr 1fr; margin-top:14px">
+    <div class="card"><h3>Governance</h3><p>Rules file (COMP-3 → BigDecimal, COBOL truncation, cite source lines) + project skill + parity-hook.</p></div>
+    <div class="card"><h3>Adoption evidence</h3><p>Bob drives each rewrite (Ask/Plan/Code), screen-recorded; Bobalytics usage exported for the submission.</p></div>
+  </div>
+</div>
+
+<!-- 7 -->
+<div class="slide">
+  <div class="kicker">Tech stack</div>
+  <h2>Built with</h2>
+  <p class="lead" style="font-size:17px; margin-bottom:10px">
+    <span class="pill">GnuCOBOL 3.1</span><span class="pill">Java 21 / BigDecimal</span><span class="pill">Spring Boot 3</span>
+    <span class="pill">Docker (GnuCOBOL image)</span><span class="pill">GitHub Actions CI</span>
+    <span class="pill">Python (results pipeline)</span><span class="pill">Azure Static Web Apps</span><span class="pill">IBM Bob (Ask / Plan / Code)</span>
+    <span class="pill">CardDemo (source app)</span>
+  </p>
+  <div class="rule">
+    <div class="card"><h3>Correctness infrastructure</h3><p>Copybook-driven field diff; BigDecimal arithmetic; fixed-width I/O so diffs are exact.</p></div>
+    <div class="card"><h3>Repeatability</h3><p>Docker + CI reproduce GnuCOBOL and the parity run on any machine, any push.</p></div>
+    <div class="card"><h3>Evidence machine-readable</h3><p>results.json drives the live dashboard + Bobalytics numbers in one place.</p></div>
+  </div>
+</div>
+
+<!-- 8 -->
+<div class="slide">
+  <div class="kicker">Future roadmap & learnings</div>
+  <h2>Next steps</h2>
+  <ul class="pipe">
+    <li><b>More CardDemo programs</b> — transaction posting, statements (interest is the proof slice).</li>
+    <li><b>COMP-3 / packed-decimal parity</b> — the genuinely hard COBOL→BigDecimal cases.</li>
+    <li><b>PCI scan</b> — card numbers in logs, weak crypto; Bob applies the fixes.</li>
+    <li><b>Live Azure dashboard</b> — parity % per program/rule with drill-down.</li>
+  </ul>
+  <h2 style="font-size:21px; margin-top:24px">Key learning</h2>
+  <p class="lead" style="font-size:16.5px">Parity-as-a-test-harness changes how a migration is trusted: it turns an article of faith ("Bob's code works") into a measurable, verifiable guarantee — which is exactly the evidence a bank asks for before signing off.</p>
+  <div class="foot">IBM Bob Hackathon · Track 2 — Modernize What Matters · ParityProof</div>
+</div>
+
+</body></html>
