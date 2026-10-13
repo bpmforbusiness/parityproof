@@ -7,41 +7,53 @@ Why this can win: many teams show Bob generating code. Fewer show *proof* the ge
 correct. This is the first question any bank asks.
 
 ## Status (proof-of-concept — runnable today)
-- ✅ Real COBOL batch runs under **GnuCOBOL 3.1**.
-- ✅ Java 21 twin produces **byte-identical** output: **100% field parity** (24/24, 6 edge-case
-  records — including BAL at the 9(9)V99 max, where the new balance overflows and COBOL
-  truncates the high-order digit; the twin reproduces that truncation).
+- ✅ Two real COBOL batch programs run under **GnuCOBOL** (`cobc`): `ACCOUNT-INT` (interest) and
+  `TXN-POST` (signed amounts, COMP-3 packed balances). Re-verified on 2026-10-13 with
+  **GnuCOBOL 3.2.0** (macOS/Homebrew). The Debian/Ubuntu `gnucobol` package used by the
+  Dockerfile and CI has not been version-checked; earlier notes saying "3.1" are unconfirmed.
+- ✅ Java 21 twins produce **byte-identical** output: **100% field parity — 64/64 fields**
+  (ACCOUNT-INT 24/24 over 6 records, TXN-POST 40/40 over 8 records). Edge cases include a balance
+  at the 9(9)V99 maximum, where COBOL silently truncates the high-order digit on overflow, and
+  COMP-3 overflow/sign cases; the twins reproduce that behaviour.
 - ✅ The parity runner **catches real divergences**: an injected half-cent rounding change drops
-  parity to ~83% and pinpoints the exact fields (INTEREST / NEW-BAL). Real PASS and injected-FAIL
-  runs are committed under `evidence/runs/`.
-- ✅ CI + a static dashboard are prepared (see below). Daily pipeline re-verification runs every
-  night via a cron hook.
+  ACCOUNT-INT parity to ~83% and pinpoints the exact fields (INTEREST / NEW-BAL). A real PASS and
+  an injected-FAIL run are committed under `evidence/runs/` (the FAIL is a deliberate mutation,
+  not a Bob change).
+- ✅ A static dashboard and a CI workflow are written (see below). The CI workflow has **not yet
+  run on GitHub** (pushing it needs a workflow-scoped token), and the dashboard is not hosted.
 
 ## What's built vs. planned (honest)
 Every folder below **exists in this repo right now** unless marked *(planned)*:
 ```
-bob/        governance: rules.md · skills/cobol-explainer/ (SKILL.md) · hooks/ (parity.sh + hooks.example.json)
-            · mcp/README.md (PLANNED — nothing wired) · EVIDENCE-TODO.md (what Abdul copies from his VM)
-cobol/      ACCOUNT-INT.cbl (original program the team wrote) + copybook.cpy — the GnuCOBOL reference runtime
-java/       AccountInterest.java — the modernized twin
-parity/     GenInput (edge cases) + ParityRunner → result.json (copybook-driven field diff)
+bob/        governance: rules.md · skills/cobol-explainer/SKILL.md · hooks/ (parity.sh, hooks.example.json, README)
+            · mcp/README.md (PLANNED — nothing wired) · EVIDENCE-TODO.md · evidence-files/ (PLACEHOLDERS only)
+cobol/      ACCOUNT-INT.cbl + copybook.cpy · TXN-POST.cbl + txn-post.cpy — original programs we wrote;
+            the GnuCOBOL reference runtime
+java/       AccountInterest.java · TxnPost.java — the modernized twins
+parity/     GenInput + GenTxnInput (edge cases) · ParityRunner (reads programs.txt) · copybook layouts
+            → result.json (per program, per record, per field)
 evidence/   runs/<UTC-ts>/ (inputs, both outputs, result.json) + latest/ + hooks/   ← real, committed runs
-catalog/    ACCOUNT-INT.md — business-rule catalog (DRAFT, for Karthik's review)
-dashboard/  index.html — static parity dashboard (per-field rate + mismatch drill-down)  *(hosting planned)*
-deck/       pitch_deck.pdf + source — 8-slide submission deck
-.github/    workflows/ci.yml — runs run.sh, fails build unless parity is 100%   *(local; needs workflow-scoped token to push)*
-Dockerfile  GnuCOBOL reference runtime (containerizing)   *(image to be built — Satish lane)*
+catalog/    ACCOUNT-INT.md · TXN-POST.md — business-rule catalogs (DRAFT, for Karthik's review)
+dashboard/  index.html — static page: overall + per-program parity, per-field rate, mismatch drill-down
+deck/       pitch_deck.pdf + index.html source — 8-slide submission deck
+.github/    workflows/ci.yml — runs run.sh, fails the build unless parity is 100%
+            (committed locally; pushing needs a workflow-scoped token; never run on GitHub yet)
+Dockerfile  GnuCOBOL + Java reference image (not built or tested here)
+run.sh      the whole pipeline, all programs; non-zero exit unless every program is at 100%
 ```
-- **Second batch program** (transaction posting) and **COMP-3 / packed-decimal** cases: *(planned)*.
-- **Live dashboard deploy** (Azure Static Web Apps / GitHub Pages): *(planned — Satish lane)*.
-- **Bob adoption evidence** (session logs from Abdul's Oracle VM, hook firings, screenshots,
-  Bobalytics export): *(planned — see bob/EVIDENCE-TODO.md)*.
+- **Live dashboard deploy** (Azure Static Web Apps / GitHub Pages): *(planned)*.
+- **Bob adoption evidence** (session logs from Abdul's Oracle VM, real hook firings, screenshots,
+  Bobalytics export): *(planned — see bob/EVIDENCE-TODO.md; `bob/evidence-files/` holds
+  placeholders only)*.
+- **MCP context for Bob**: *(planned — nothing wired; see bob/mcp/README.md)*.
+- **Migration onto AWS CardDemo source**: *(planned — license to be confirmed first)*.
 
 ## Run the pipeline (local, no Docker needed)
 Prereqs: `gnucobol` (cobc) + Java 21.  Then:
 ```bash
 bash run.sh     # generate inputs -> compile+run COBOL -> run Java -> field-by-field parity diff
-# each run is captured under evidence/runs/<UTC-ts>/ with evidence/latest/ pointing at the newest
+# each run is captured under evidence/runs/<UTC-ts>/ with evidence/latest/ pointing at the newest;
+# exits non-zero unless every program in parity/programs.txt is at 100% field parity
 ```
 
 ## How a change flows
@@ -56,25 +68,30 @@ compile→run→parity → mismatch → Bob diagnoses and fixes → green → `e
   fixed format (rule ID, description, source lines, inputs, outputs, edge cases). (Land as
   `.bob/skills/cobol-explainer/`.)
 - `bob/hooks/parity.sh` — compile → run → parity; exits non-zero on any parity FAIL and logs to
-  `evidence/hooks/`. `hooks.example.json` shows the wiring (format verified against bob.ibm.com/docs).
+  `evidence/hooks/`. `hooks.example.json` is the fragment for `.bob/settings.json` (format checked
+  against bob.ibm.com/docs). Per those docs a `PostToolUse` hook is **non-blocking**, so it
+  records parity after an edit rather than stopping Bob; whether it has fired inside a Bob
+  session is not yet evidenced.
 - `bob/mcp/README.md` — MCP context is **PLANNED (not wired)** — recorded honestly, with the
   security rule from the docs (secrets via env vars, never committed).
 
 ## Judging fit
-- **Tool Usage & Depth of Adoption (30%)** — driven by the `bob/` layer + real `evidence/` files
-  (committed runs, hook logs). Bob's session recordings and Bobalytics export are being gathered
-  from the driving VM (`bob/EVIDENCE-TODO.md`) — those raw captures are the missing piece, not the
-  pipelines around them.
+- **Tool Usage & Depth of Adoption (30%)** — the `bob/` layer (rules, skill, hook, MCP plan) and
+  real `evidence/` files (committed runs, a hook log) are in the repo. What is **not** yet in the
+  repo is proof of Bob itself doing the work: session recordings, real hook firings, screenshots
+  and a Bobalytics export still have to be gathered from the driving VM (`bob/EVIDENCE-TODO.md`).
+  The catalogs were drafted with Claude Code, not Bob.
 - **Innovation & Relevance (30%)** — parity against a **real COBOL reference**. To be transparent
-  about the provenance: the reference program is **an original program the team wrote**, validated
-  by running it under GnuCOBOL 3.1 — not a curated sample and not a staged toy. Migration onto
+  about provenance: the reference programs are **original programs the team wrote**, validated by
+  running them under GnuCOBOL — not a curated sample and not a staged toy. Migration onto
   **AWS CardDemo** source is the intended scale-up; its license is still to be confirmed before any
   of its code enters the repo.
-- **Functionality & Execution (30%)** — green parity gate in CI, static dashboard prepared; the
-  live-hosted dashboard and CI-on-GitHub are the remaining deployment steps.
+- **Functionality & Execution (30%)** — `bash run.sh` gates on 100% parity across two programs;
+  a CI workflow that does the same is written but has not run on GitHub; the dashboard is built
+  but not hosted.
 - **Presentation (10%)** — 8-slide pitch deck (`deck/pitch_deck.pdf`) + a 3-min demo that includes
   a genuine captured mismatch (the injected-FAIL run at `evidence/runs/20261013T134034Z`).
 
 ## License / provenance
-The proof program is original work we wrote; CardDemo (AWS) license to be confirmed before its code
-enters. See `cobol/copybook.cpy` and `catalog/ACCOUNT-INT.md`.
+The proof programs are original work we wrote; CardDemo (AWS) license to be confirmed before its code
+enters. See `cobol/copybook.cpy`, `cobol/txn-post.cpy` and `catalog/`.
