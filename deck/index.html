@@ -81,7 +81,7 @@
     <li><b>Java 21 twins</b> — plain single-file programs; BigDecimal arithmetic; copybook layout → fixed-width output.</li>
     <li><b>Edge-case input generators</b> — half-cent rounding, zero and tiny balances, negative balances, sign handling, and field-limit overflow (silent COBOL truncation, reproduced).</li>
     <li><b>Parity runner</b> — diffs every field of every record, per program, by the copybook layout → result.json; exits non-zero on any mismatch.</li>
-    <li><b>Gate + dashboard</b> — <code>run.sh</code> fails unless parity is 100%; a GitHub Actions workflow is written (not yet run on GitHub); a static dashboard is built (hosting planned).</li>
+    <li><b>Gate + dashboard</b> — <code>run.sh</code> fails unless parity is 100%; a GitHub Actions workflow is written (not yet run on GitHub); a static dashboard is live on GitHub Pages (bpmforbusiness.github.io/parityproof).</li>
   </ul>
   <div class="foot">Every output keeps the original fixed-width format so the diff is exact.</div>
 </div>
@@ -136,7 +136,7 @@
   <ul class="pipe">
     <li><b>Business review</b> — Karthik signs off the rule catalogs; decide whether the silent overflow truncation (preserved for parity) should become a guard in production.</li>
     <li><b>True packed-decimal files</b> — our files are DISPLAY text; binary COMP-3 record I/O is the next hard case.</li>
-    <li><b>Ship the gate</b> — run the CI workflow on GitHub; host the dashboard.</li>
+    <li><b>Ship the gate</b> — run the CI workflow on GitHub (the dashboard is already hosted).</li>
     <li><b>More programs</b> — statements and other batch jobs; AWS CardDemo source once its license is confirmed.</li>
   </ul>
   <h2 style="font-size:21px; margin-top:24px">Key learning</h2>

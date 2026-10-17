@@ -20,7 +20,8 @@ correct. This is the first question any bank asks.
   an injected-FAIL run are committed under `evidence/runs/` (the FAIL is a deliberate mutation,
   not a Bob change).
 - ✅ A static dashboard and a CI workflow are written (see below). The CI workflow has **not yet
-  run on GitHub** (pushing it needs a workflow-scoped token), and the dashboard is not hosted.
+  run on GitHub** (pushing it needs a workflow-scoped token). The dashboard is **live on GitHub
+  Pages**: <https://bpmforbusiness.github.io/parityproof/>.
 
 ## What's built vs. planned (honest)
 Every folder below **exists in this repo right now** unless marked *(planned)*:
@@ -34,14 +35,13 @@ parity/     GenInput + GenTxnInput (edge cases) · ParityRunner (reads programs.
             → result.json (per program, per record, per field)
 evidence/   runs/<UTC-ts>/ (inputs, both outputs, result.json) + latest/ + hooks/   ← real, committed runs
 catalog/    ACCOUNT-INT.md · TXN-POST.md — business-rule catalogs (DRAFT, for Karthik's review)
-dashboard/  index.html — static page: overall + per-program parity, per-field rate, mismatch drill-down
+dashboard/  index.html — static page (live on GitHub Pages): overall + per-program parity, per-field rate, mismatch drill-down
 deck/       pitch_deck.pdf + index.html source — 8-slide submission deck
 .github/    workflows/ci.yml — runs run.sh, fails the build unless parity is 100%
             (kept LOCAL and gitignored — pushing it needs a workflow-scoped token; never run on GitHub yet)
 Dockerfile  GnuCOBOL + Java reference image (not built or tested here)
 run.sh      the whole pipeline, all programs; non-zero exit unless every program is at 100%
 ```
-- **Live dashboard deploy** (Azure Static Web Apps / GitHub Pages): *(planned)*.
 - **Bob adoption evidence**: partly done. Committed: Bob's replies and our reviews of them
   (`bob/evidence-files/sessions/`), six screenshots with captions (`bob/evidence-files/screenshots/`)
   and one real hook firing (`evidence/hooks/`). *(Planned — see bob/EVIDENCE-TODO.md)*: a session
@@ -50,13 +50,11 @@ run.sh      the whole pipeline, all programs; non-zero exit unless every program
 - **Migration onto AWS CardDemo source**: *(planned — license to be confirmed first)*.
 
 ## Dashboard on GitHub Pages
-The static dashboard needs no build step. The repo is set up for Pages from the repo root
-(`index.html` redirects to `dashboard/`, `.nojekyll` disables Jekyll). **Not enabled yet** — to turn
-it on: GitHub → repo **Settings → Pages → Build and deployment → Source: "Deploy from a branch"
-→ Branch `main`, folder `/ (root)` → Save**. The site is then expected at
-`https://bpmforbusiness.github.io/parityproof/` after a minute or two. It shows whatever is committed
-in `evidence/latest/result.json`, so push a fresh `bash run.sh` run to update it. Tested locally
-by serving the repo root; not yet tested on GitHub's servers.
+**Live: <https://bpmforbusiness.github.io/parityproof/>** (checked 2026-10-17: shows 100%, 64/64
+fields, 2/2 programs). The static dashboard needs no build step; Pages serves the repo root from
+`main` (`index.html` redirects to `dashboard/`, `.nojekyll` disables Jekyll). It shows whatever is
+committed in `evidence/latest/result.json`, so push a fresh `bash run.sh` run to update it, and do
+not push a failing run to `evidence/latest` while the public link is being judged.
 
 ## Run the pipeline (local, no Docker needed)
 Prereqs: `gnucobol` (cobc) + Java 21.  Then:
@@ -103,7 +101,7 @@ loop is the intended design; it has not been demonstrated with Bob yet.
   of its code enters the repo.
 - **Functionality & Execution (30%)** — `bash run.sh` gates on 100% parity across two programs;
   a CI workflow that does the same is written but has not run on GitHub; the dashboard is built
-  but not hosted.
+  and hosted on GitHub Pages.
 - **Presentation (10%)** — 8-slide pitch deck (`deck/pitch_deck.pdf`) + a 3-min demo that includes
   a genuine captured mismatch (the injected-FAIL run at `evidence/runs/20261013T134034Z`).
 
