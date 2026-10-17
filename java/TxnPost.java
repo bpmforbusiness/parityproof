@@ -56,7 +56,14 @@ public final class TxnPost {
         return field.charAt(0) == '-' ? mag.negate() : mag;
     }
 
-    /** Store into S9(9)V99: keep the low-order 11 digits and the sign (COBOL high-order truncation). */
+    /**
+     * Store into S9(9)V99: keep the low-order 11 digits and the sign (COBOL high-order truncation).
+     * Reproduces the silent overflow of COMPUTE WS-ENDBAL (line 40) and ADD T-AMT TO WS-BATCHTOT
+     * (line 41) — both targets are S9(9)V99 with no ON SIZE ERROR; GnuCOBOL drops the high-order
+     * digit(s) and keeps the sign (observed: +999999999.99 + 0.01 → +000000000.00;
+     * -999999999.99 - 5.00 → -000000004.99).  Applies to WS-ENDBAL only in current test fixtures
+     * (WS-BATCHTOT overflow is not exercised; see catalog/TXN-POST.md R003, R004).
+     */
     private static BigDecimal fit(BigDecimal v) {
         BigInteger unscaled = v.unscaledValue().abs()
             .mod(BigInteger.TEN.pow(INT_DIGITS + SCALE));
