@@ -71,7 +71,10 @@ public final class TxnPost {
         return v.signum() < 0 ? r.negate() : r;
     }
 
-    /** SIGN LEADING SEPARATE rendering: '+'/'-' then zero-padded digits, no decimal point. A zero is always '+'. */
+    /**
+     * SIGN LEADING SEPARATE rendering: '+'/'-' then zero-padded digits, no decimal point.
+     * A zero result is always rendered with a leading '+'.
+     */
     private static String format(BigDecimal v, int intDigits) {
         String digits = v.abs().unscaledValue().toString();   // already within the PIC: fit() truncated it
         int width = intDigits + SCALE;
