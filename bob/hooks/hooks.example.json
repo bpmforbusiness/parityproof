@@ -2,7 +2,7 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "^write_file$",
+        "matcher": "^(write_file|write_to_file|apply_diff|insert_content|search_and_replace)$",
         "hooks": [
           { "type": "command", "command": "sh .bob/hooks/parity.sh", "timeout": 120 }
         ]
