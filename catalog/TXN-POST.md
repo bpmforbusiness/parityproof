@@ -1,13 +1,15 @@
 # TXN-POST — Business Rule Catalog
 
-> **Status: DRAFT for business review (Karthik).** Drafted from `cobol/TXN-POST.cbl` by Claude
-> Code, following `bob/skills/cobol-explainer/SKILL.md`. Not produced by a Bob session. Line
-> citations were checked against the file; business meaning has not been reviewed.
+> **Status: DRAFT for business review (Karthik).** R001–R004 were drafted from
+> `cobol/TXN-POST.cbl` by Claude Code, following `bob/skills/cobol-explainer/SKILL.md`. R005 comes
+> from a Bob IDE reply (its rule TXN-POST-R006; verbatim copy and review in
+> `bob/evidence-files/sessions/`), and its line citations were checked against the file. Business
+> meaning has not been reviewed.
 
 **Program:** TXN-POST — a batch transaction-posting run over a fixed-width transaction file.
 **What it does:** for each transaction, adds the signed amount to the account's opening balance
 to get an end balance, flags overdrafts, and keeps a running batch total across the file.
-**Rules found:** 4
+**Rules found:** 5
 
 ---
 
@@ -57,7 +59,19 @@ to get an end balance, flags overdrafts, and keeps a running batch total across 
   original program**: a very large account can show a wrong, even zero, balance with no error.
   Flag for the business whether production should guard or reject instead; it is kept as-is here.
 
+## R005 — Batch total repeated on every output record (not a trailer)  _(found by Bob)_
+- **Description:** The running batch total is written into **every** output record, not
+  only a final trailer. Each record carries the cumulative total up to and including its own
+  transaction, so only the **last** record holds the true file-level grand total.
+- **Source lines:** `cobol/TXN-POST.cbl` 41 (`ADD T-AMT TO WS-BATCHTOT`), 50
+  (`MOVE WS-BATCHTOT TO O-BATCHTOT`).
+- **Inputs:** WS-BATCHTOT (PIC S9(9)V99 COMP-3) after the current record's ADD.
+- **Outputs:** O-BATCHTOT (PIC S9(9)V99, sign leading separate) on every record.
+- **Edge cases:** a downstream consumer that reads an earlier record, or assumes
+  `O-BATCHTOT` is a file summary field, sees only a partial total. Confirm with the business
+  whether a separate trailer record is expected.
+
 ---
 
-_Flagged for review:_ R004 (silent wrap-around of balances); R003's "per file, not per account"
+_Flagged for review:_ R004 (silent wrap-around of balances); R005 (running total on every record); R003's "per file, not per account"
 scope is as implemented, which may not be what the business intends for a multi-account file.
