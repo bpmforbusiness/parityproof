@@ -1,10 +1,14 @@
 # TXN-POST — Business Rule Catalog
 
-> **Status: DRAFT for business review (Karthik).** R001–R004 were drafted from
+> **Status: REVIEWED 2026-10-17 (Karthik) — 2 open items (T5 input-file contract, T4 last-record
+> contract).** R001–R004 were drafted from
 > `cobol/TXN-POST.cbl` by Claude Code, following `bob/skills/cobol-explainer/SKILL.md`. R005 comes
 > from a Bob IDE reply (its rule TXN-POST-R006; verbatim copy and review in
-> `bob/evidence-files/sessions/`), and its line citations were checked against the file. Business
-> meaning has not been reviewed.
+> `bob/evidence-files/sessions/`), and its line citations were checked against the file. Reviewed
+> against the business questions in `catalog/REVIEW-CHECKLIST.md`: **T1, T2, T3** and **T6** agreed
+> (T6 with a production guard requested); **T4** needs the last-record convention written down, and
+> **T5** cannot be settled until the input-file contract says whether an account may appear more
+> than once.
 
 **Program:** TXN-POST — a batch transaction-posting run over a fixed-width transaction file.
 **What it does:** for each transaction, adds the signed amount to the account's opening balance

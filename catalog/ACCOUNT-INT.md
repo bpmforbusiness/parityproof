@@ -1,10 +1,13 @@
 # ACCOUNT-INT — Business Rule Catalog
 
-> **Status: DRAFT for business review (Karthik).** Drafted from `cobol/ACCOUNT-INT.cbl` by
-> Claude Code, following the format in `bob/skills/cobol-explainer/SKILL.md`. It was **not**
-> produced by a Bob session (any Bob-generated version must come from the Oracle VM — see
-> `bob/EVIDENCE-TODO.md`). Source-line citations were checked against the file; business
-> meaning has not been reviewed. Review each entry, then flip this header to "Reviewed".
+> **Status: REVIEWED 2026-10-17 (Karthik) — 1 open item (A1, rate period).** Drafted from
+> `cobol/ACCOUNT-INT.cbl` by Claude Code, following the format in
+> `bob/skills/cobol-explainer/SKILL.md`. It was **not** produced by a Bob session (any
+> Bob-generated version must come from the Oracle VM — see `bob/EVIDENCE-TODO.md`).
+> Source-line citations were checked against the file. Reviewed against the business questions in
+> `catalog/REVIEW-CHECKLIST.md`: **A2** and **A3** agreed; **A4** agreed with a production overflow
+> guard requested; **A1 is unresolved** — is the 3.5% rate annual or per-period? (The code applies
+> it once per run and carries no period semantics.)
 
 **Program:** ACCOUNT-INT — a monthly interest run over a fixed-width account file.
 **What it does:** for each account, computes interest at a fixed 3.5% on the balance,
