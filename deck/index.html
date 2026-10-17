@@ -24,6 +24,7 @@
   ul.pipe li { color:#c9d1d9; font-size:15.5px; line-height:1.5; padding-left:18px; position:relative; break-inside:avoid; }
   ul.pipe li:before { content:"▸"; color:#3fb950; position:absolute; left:0; }
   .foot { position:absolute; bottom:18px; left:0.7in; right:0.7in; color:#8b949e; font-size:12px; border-top:1px solid #21262d; padding-top:8px; }
+  code { font-family:ui-monospace,Menlo,monospace; background:#30363d; color:#e6edf3; padding:1px 5px; border-radius:4px; font-size:0.9em; }
   .pill { display:inline-block; background:#30363d; color:#c9d1d9; border-radius:20px; padding:4px 12px; font-size:12px; margin:3px 3px 0 0; }
 </style></head><body>
 
@@ -33,12 +34,12 @@
   <h1>ParityProof<br></h1>
   <p class="lead">Modernize COBOL to Java and <b>prove the new code behaves exactly like the original</b> — a copybook-aware runner diffs the COBOL reference and the Java twin field-by-field, on identical inputs.</p>
   <div class="rule">
-    <div class="card"><h3>✔ It runs</h3><p>Real COBOL compiled under GnuCOBOL; Java 21 twin; edge-case input generator.</p></div>
-    <div class="card"><h3>✔ It proves</h3><p><b>100% field parity</b>, and it catches real divergence (injected rounding bug → 90%, field pinpointed).</p></div>
-    <div class="card"><h3>✔ It is central to IBM Bob</h3><p>Bob extracts the rules, plans the migration, writes the Java — and a hook runs parity after every edit.</p></div>
+    <div class="card"><h3>✔ It runs</h3><p>Two original COBOL batch programs compiled under GnuCOBOL; Java 21 twins; edge-case input generators. One command: <code>bash run.sh</code>.</p></div>
+    <div class="card"><h3>✔ It proves</h3><p><b>100% field parity (64/64 fields)</b>, and it catches real divergence (injected rounding bug → 83% on ACCOUNT-INT, exact fields pinpointed).</p></div>
+    <div class="card"><h3>✔ It is central to IBM Bob</h3><p>Bob explains the rules (Ask), plans changes (Plan) and edits the Java (Code); a parity hook script re-runs the proof after edits. Sessions and reviews are committed.</p></div>
   </div>
   <p class="lead" style="margin-top:24px;font-size:16px;max-width:11in"><b>Team:</b> Abdul Qaadir (Java lead · Bob driver) · Satish (Cloud · CI) · Karthik (Business analysis · story)</p>
-  <div class="foot">github.com/bpmforbusiness/parityproof · CardDemo batch → Java modernization</div>
+  <div class="foot">github.com/bpmforbusiness/parityproof · original COBOL batch programs → Java (AWS CardDemo: planned, license TBC)</div>
 </div>
 
 <!-- 2 -->
@@ -59,14 +60,14 @@
   <h2>Many teams work with Bob. Few prove the output is correct.</h2>
   <p class="lead" style="font-size:19px">The first thing any bank wants is a guarantee the rewrite is behaviorally identical. We built the mechanism that delivers it.</p>
   <div class="rule">
-    <div class="card"><h3>Most teams</h3><p>Show Bob generating Java → judge sees code, must trust it.</p></div>
-    <div class="card"><h3>ParityProof</h3><p>Shows Bob generating Java <b style="color:#3fb950">and a running proof it matches the COBOL byte-for-byte</b>.</p></div>
+    <div class="card"><h3>Most teams</h3><p>Show generated Java → judge sees code, must trust it.</p></div>
+    <div class="card"><h3>ParityProof</h3><p>Adds <b style="color:#3fb950">a running proof the Java matches the COBOL byte-for-byte</b>, with Bob in the loop (Ask / Plan / Code).</p></div>
     <div class="card"><h3>Judging edge</h3><p>Correctness + explainability is the defensible innovation, not the generation itself.</p></div>
   </div>
   <div class="stat">
-    <div class="box"><b class="mega">100%</b><span>field parity — 20/20</span></div>
-    <div class="box"><b class="red">90%</b><span>→ FAIL when a rounding slip is injected — field pinpointed</span></div>
-    <div class="box"><b>20/20</b><span>fields diffed on 5 edge-case records</span></div>
+    <div class="box"><b class="mega">100%</b><span>field parity — 64/64 (2 programs)</span></div>
+    <div class="box"><b class="red">83%</b><span>→ FAIL on ACCOUNT-INT when a rounding slip is injected (20/24) — fields pinpointed</span></div>
+    <div class="box"><b>14</b><span>edge-case records: 6 interest + 8 transaction posting</span></div>
   </div>
 </div>
 
@@ -75,12 +76,12 @@
   <div class="kicker">What we built</div>
   <h2>ParityProof pipeline</h2>
   <ul class="pipe">
-    <li><b>COBOL reference runtime</b> — GnuCOBOL Docker image runs the original batch on flat-file inputs.</li>
-    <li><b>Business-rule catalog</b> — Bob explains each program; Karthik sanity-checks the rules.</li>
-    <li><b>Java 21 modernized program</b> — Spring Boot CLI job; copybook becomes a fixed-width record class.</li>
-    <li><b>Edge-case input generator</b> — zero/negative balances, half-cent rounding, max field sizes, leap dates, empty files.</li>
-    <li><b>Parity runner</b> — runs both on every input, diffs every field by the copybook layout → results.json.</li>
-    <li><b>CI + dashboard</b> — GitHub Actions fails the build unless parity is 100%; Azure-hosted live dashboard.</li>
+    <li><b>COBOL reference runtime</b> — GnuCOBOL (verified 3.2.0) runs two original batch programs: ACCOUNT-INT and TXN-POST (signed amounts, COMP-3). A Dockerfile exists but is not yet built.</li>
+    <li><b>Business-rule catalog</b> — drafted with Bob and Claude Code, line citations verified; Karthik's business review is pending.</li>
+    <li><b>Java 21 twins</b> — plain single-file programs; BigDecimal arithmetic; copybook layout → fixed-width output.</li>
+    <li><b>Edge-case input generators</b> — half-cent rounding, zero and tiny balances, negative balances, sign handling, and field-limit overflow (silent COBOL truncation, reproduced).</li>
+    <li><b>Parity runner</b> — diffs every field of every record, per program, by the copybook layout → result.json; exits non-zero on any mismatch.</li>
+    <li><b>Gate + dashboard</b> — <code>run.sh</code> fails unless parity is 100%; a GitHub Actions workflow is written (not yet run on GitHub); a static dashboard is built (hosting planned).</li>
   </ul>
   <div class="foot">Every output keeps the original fixed-width format so the diff is exact.</div>
 </div>
@@ -89,12 +90,12 @@
 <div class="slide">
   <div class="kicker">Live proof</div>
   <h2>Parity catches real bugs</h2>
-  <p class="lead" style="font-size:17px">Interest batch, acct 1: COBOL <span style="color:#3fb950;font-family:monospace">00000043208</span> (432.08). Java with HALF_DOWN rounding: <span style="color:#f85149;font-family:monospace">00000043207</span> (432.07).</p>
+  <p class="lead" style="font-size:17px">Interest batch, acct 1: COBOL <span style="color:#3fb950;font-family:monospace">00000043208</span> (432.08). Java with rounding changed to DOWN (injected): <span style="color:#f85149;font-family:monospace">00000043207</span> (432.07).</p>
   <div class="stat">
-    <div class="box"><b class="mega">CORRECT</b><span>HALF_UP → 100% pass, 20/20 fields</span></div>
-    <div class="box"><b class="red">INJECTED BUG</b><span>HALF_DOWN → 90% FAIL, INTEREST + NEW-BAL flagged</span></div>
+    <div class="box"><b class="mega">CORRECT</b><span>HALF_UP → 100% pass, 64/64 fields</span></div>
+    <div class="box"><b class="red">INJECTED BUG</b><span>DOWN → ACCOUNT-INT 20/24 FAIL, INTEREST + NEW-BAL flagged (a deliberate mutation, not a Bob change)</span></div>
   </div>
-  <p class="lead" style="margin-top:26px;font-size:17px">One preview: <b>speed of verification</b> — a full COBOL + Java compile-and-parity run completes in seconds in CI, so every Bob edit is checked on the spot via a hook. Usability and performance measured by the runner, not a guess.</p>
+  <p class="lead" style="margin-top:26px;font-size:17px">Every run is saved under <b>evidence/runs/&lt;timestamp&gt;/</b> (inputs, both outputs, result.json): a real PASS and a real injected FAIL are committed, and the runner also fails cleanly when a COBOL or Java output is missing.</p>
 </div>
 
 <!-- 6 -->
@@ -102,13 +103,13 @@
   <div class="kicker">How IBM Bob is central</div>
   <h2>Bob in the loop at every step</h2>
   <div class="rule">
-    <div class="card"><h3>Ask — extract rules</h3><p>"COBOL explainer" skill produces a consistent business-rule catalog with source-line citations.</p></div>
-    <div class="card"><h3>Plan — migration plan</h3><p>Per-program plan: copybook → record, COMP-3 → BigDecimal, truncation handling; scope locked with the team.</p></div>
-    <div class="card"><h3>Code — write the Java</h3><p>Bob generates the Java twin; the <b>hook runs the parity suite after every edit</b> so a mismatch fails immediately.</p></div>
+    <div class="card"><h3>Ask — extract rules</h3><p>Bob explained TXN-POST as business rules with source-line citations — all citations verified. Review caught its mistakes and kept its real finding (batch total repeated on every record; no per-account grouping).</p></div>
+    <div class="card"><h3>Plan — plan a change</h3><p>Bob planned a comment-only change to the Java twin, citing the COBOL lines, with a parity run as the acceptance gate.</p></div>
+    <div class="card"><h3>Code — edit the Java</h3><p>Bob made the edit; <code>run.sh</code> stayed at <b>64/64</b>. The parity hook script is written and tested; its first firing inside Bob is still being captured.</p></div>
   </div>
   <div class="rule" style="grid-template-columns:1fr 1fr; margin-top:14px">
-    <div class="card"><h3>Governance</h3><p>Rules file (COMP-3 → BigDecimal, COBOL truncation, cite source lines) + project skill + parity-hook.</p></div>
-    <div class="card"><h3>Adoption evidence</h3><p>Bob drives each rewrite (Ask/Plan/Code), screen-recorded; Bobalytics usage exported for the submission.</p></div>
+    <div class="card"><h3>Governance</h3><p>Rules file (COMP-3 → BigDecimal, COBOL truncation, cite source lines) + cobol-explainer skill + parity hook script.</p></div>
+    <div class="card"><h3>Adoption evidence</h3><p>Bob replies and our reviews of them are committed under <b>bob/evidence-files/</b>. Screenshots, a hook firing and the Bobalytics export are still to be added.</p></div>
   </div>
 </div>
 
@@ -117,15 +118,14 @@
   <div class="kicker">Tech stack</div>
   <h2>Built with</h2>
   <p class="lead" style="font-size:17px; margin-bottom:10px">
-    <span class="pill">GnuCOBOL 3.1</span><span class="pill">Java 21 / BigDecimal</span><span class="pill">Spring Boot 3</span>
-    <span class="pill">Docker (GnuCOBOL image)</span><span class="pill">GitHub Actions CI</span>
-    <span class="pill">Python (results pipeline)</span><span class="pill">Azure Static Web Apps</span><span class="pill">IBM Bob (Ask / Plan / Code)</span>
-    <span class="pill">CardDemo (source app)</span>
+    <span class="pill">GnuCOBOL 3.2</span><span class="pill">Java 21 / BigDecimal</span><span class="pill">Single-file Java, no build step</span>
+    <span class="pill">Bash pipeline (run.sh)</span><span class="pill">Static HTML dashboard</span>
+    <span class="pill">GitHub Actions (written)</span><span class="pill">Dockerfile (not yet built)</span><span class="pill">IBM Bob (Ask / Plan / Code)</span>
   </p>
   <div class="rule">
-    <div class="card"><h3>Correctness infrastructure</h3><p>Copybook-driven field diff; BigDecimal arithmetic; fixed-width I/O so diffs are exact.</p></div>
-    <div class="card"><h3>Repeatability</h3><p>Docker + CI reproduce GnuCOBOL and the parity run on any machine, any push.</p></div>
-    <div class="card"><h3>Evidence machine-readable</h3><p>results.json drives the live dashboard + Bobalytics numbers in one place.</p></div>
+    <div class="card"><h3>Correctness infrastructure</h3><p>Copybook-driven field diff; BigDecimal arithmetic; signed and COMP-3 fields; fixed-width I/O so diffs are exact.</p></div>
+    <div class="card"><h3>Repeatability</h3><p>One command (<code>bash run.sh</code>) reproduces the whole run and keeps timestamped evidence. Docker and CI definitions are provided but not yet exercised.</p></div>
+    <div class="card"><h3>Evidence machine-readable</h3><p>result.json drives the static dashboard: overall and per-program parity, per-field rates, mismatch drill-down.</p></div>
   </div>
 </div>
 
@@ -134,13 +134,13 @@
   <div class="kicker">Future roadmap & learnings</div>
   <h2>Next steps</h2>
   <ul class="pipe">
-    <li><b>More CardDemo programs</b> — transaction posting, statements (interest is the proof slice).</li>
-    <li><b>COMP-3 / packed-decimal parity</b> — the genuinely hard COBOL→BigDecimal cases.</li>
-    <li><b>PCI scan</b> — card numbers in logs, weak crypto; Bob applies the fixes.</li>
-    <li><b>Live Azure dashboard</b> — parity % per program/rule with drill-down.</li>
+    <li><b>Business review</b> — Karthik signs off the rule catalogs; decide whether the silent overflow truncation (preserved for parity) should become a guard in production.</li>
+    <li><b>True packed-decimal files</b> — our files are DISPLAY text; binary COMP-3 record I/O is the next hard case.</li>
+    <li><b>Ship the gate</b> — run the CI workflow on GitHub; host the dashboard.</li>
+    <li><b>More programs</b> — statements and other batch jobs; AWS CardDemo source once its license is confirmed.</li>
   </ul>
   <h2 style="font-size:21px; margin-top:24px">Key learning</h2>
-  <p class="lead" style="font-size:16.5px">Parity-as-a-test-harness changes how a migration is trusted: it turns an article of faith ("Bob's code works") into a measurable, verifiable guarantee — which is exactly the evidence a bank asks for before signing off.</p>
+  <p class="lead" style="font-size:16.5px">Parity-as-a-test-harness changes how a migration is trusted: it turns an article of faith ("Bob's code works") into a measurable, verifiable guarantee — which is exactly the evidence a bank asks for before signing off. It also surfaced hidden COBOL behavior (silent overflow truncation) that a naive rewrite would have "fixed" and broken parity.</p>
   <div class="foot">IBM Bob Hackathon · Track 2 — Modernize What Matters · ParityProof</div>
 </div>
 
