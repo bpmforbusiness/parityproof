@@ -75,3 +75,6 @@ to get an end balance, flags overdrafts, and keeps a running batch total across 
 
 _Flagged for review:_ R004 (silent wrap-around of balances); R005 (running total on every record); R003's "per file, not per account"
 scope is as implemented, which may not be what the business intends for a multi-account file.
+Also (found by Bob): there is no grouping by account. If the same account appears twice in the
+input, two independent rows are written, each using only its own `T-OPENBAL`, while the batch
+total still accumulates across all rows. Confirm with the business that this is intended.
