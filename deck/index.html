@@ -77,7 +77,7 @@
   <h2>ParityProof pipeline</h2>
   <ul class="pipe">
     <li><b>COBOL reference runtime</b> — GnuCOBOL (verified 3.2.0) runs two original batch programs: ACCOUNT-INT and TXN-POST (signed amounts, COMP-3). A Dockerfile exists but is not yet built.</li>
-    <li><b>Business-rule catalog</b> — drafted with Bob and Claude Code, line citations verified; Karthik's business review is pending.</li>
+    <li><b>Business-rule catalog</b> — drafted with AI assistance (Bob explained the rules; we reviewed its output), line citations verified; Karthik's business review is pending.</li>
     <li><b>Java 21 twins</b> — plain single-file programs; BigDecimal arithmetic; copybook layout → fixed-width output.</li>
     <li><b>Edge-case input generators</b> — half-cent rounding, zero and tiny balances, negative balances, sign handling, and field-limit overflow (silent COBOL truncation, reproduced).</li>
     <li><b>Parity runner</b> — diffs every field of every record, per program, by the copybook layout → result.json; exits non-zero on any mismatch.</li>
