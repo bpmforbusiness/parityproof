@@ -1,24 +1,22 @@
 # ACCOUNT-INT — Business Rule Catalog
 
-> **Status: REVIEWED 2026-10-17 (Karthik) — 1 open item (A1, rate period).** Drafted from
-> `cobol/ACCOUNT-INT.cbl` by Claude Code, following the format in
-> `bob/skills/cobol-explainer/SKILL.md`. It was **not** produced by a Bob session (any
-> Bob-generated version must come from the Oracle VM — see `bob/EVIDENCE-TODO.md`).
-> Source-line citations were checked against the file. Reviewed against the business questions in
-> `catalog/REVIEW-CHECKLIST.md`: **A2** and **A3** agreed; **A4** agreed with a production overflow
-> guard requested; **A1 is unresolved** — is the 3.5% rate annual or per-period? (The code applies
+> **Status: DRAFT — proposed review answers prepared for Karthik, NOT yet confirmed by him
+> (see `catalog/REVIEW-CHECKLIST.md`).** Drafted from `cobol/ACCOUNT-INT.cbl` by Claude Code, following
+> `bob/skills/cobol-explainer/SKILL.md`. It was **not** produced by a Bob session. Source-line
+> citations were checked against the file. Proposed answers: **A2** and **A3** agree; **A4** agree with
+> a production overflow guard; **A1 is open** — is the 3.5% rate annual or per-period? (The code applies
 > it once per run and carries no period semantics.)
 
-**Program:** ACCOUNT-INT — a monthly interest run over a fixed-width account file.
+**Program:** ACCOUNT-INT — an interest run over a fixed-width account file (the run cadence is not stated in the code).
 **What it does:** for each account, computes interest at a fixed 3.5% on the balance,
 adds it to produce a new balance, and writes a fixed-width result file.
 **Rules found:** 4
 
 ---
 
-## R001 — Compute monthly interest
+## R001 — Compute interest at a fixed rate
 - **Description:** Interest is calculated on the account's posted balance at a fixed
-  annual rate of 3.5%, then **rounded to the nearest cent** using COBOL `ROUNDED`
+  rate of 3.5% (whether that is per year or per run is an open question, A1), then **rounded to the nearest cent** using COBOL `ROUNDED`
   semantics (round half away from zero on the final cent).
 - **Source lines:** `cobol/ACCOUNT-INT.cbl` 29 (`WS-RATE PIC 9V999 VALUE 0.035`),
   38 (`COMPUTE WS-INTEREST ROUNDED = BAL * WS-RATE`).
@@ -64,4 +62,4 @@ adds it to produce a new balance, and writes a fixed-width result file.
 ---
 
 _Flagged for review:_ R004 is the only genuinely suspicious business behaviour; R001's
-"annual" rate is an assumption (the rate is a hard-coded constant).
+rate period (annual vs per-run) is not stated anywhere in the code (the rate is a hard-coded constant).
