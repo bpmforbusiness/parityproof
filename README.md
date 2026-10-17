@@ -49,6 +49,15 @@ run.sh      the whole pipeline, all programs; non-zero exit unless every program
 - **MCP context for Bob**: *(planned — nothing wired; see bob/mcp/README.md)*.
 - **Migration onto AWS CardDemo source**: *(planned — license to be confirmed first)*.
 
+## Dashboard on GitHub Pages
+The static dashboard needs no build step. The repo is set up for Pages from the repo root
+(`index.html` redirects to `dashboard/`, `.nojekyll` disables Jekyll). **Not enabled yet** — to turn
+it on: GitHub → repo **Settings → Pages → Build and deployment → Source: "Deploy from a branch"
+→ Branch `main`, folder `/ (root)` → Save**. The site is then expected at
+`https://bpmforbusiness.github.io/parityproof/` after a minute or two. It shows whatever is committed
+in `evidence/latest/result.json`, so push a fresh `bash run.sh` run to update it. Tested locally
+by serving the repo root; not yet tested on GitHub's servers.
+
 ## Run the pipeline (local, no Docker needed)
 Prereqs: `gnucobol` (cobc) + Java 21.  Then:
 ```bash
