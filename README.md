@@ -42,9 +42,9 @@ Dockerfile  GnuCOBOL + Java reference image (not built or tested here)
 run.sh      the whole pipeline, all programs; non-zero exit unless every program is at 100%
 ```
 - **Live dashboard deploy** (Azure Static Web Apps / GitHub Pages): *(planned)*.
-- **Bob adoption evidence** (session logs from Abdul's Oracle VM, real hook firings, screenshots,
-  Bobalytics export): *(planned — see bob/EVIDENCE-TODO.md; `bob/evidence-files/` holds
-  placeholders only)*.
+- **Bob adoption evidence**: partly done. Committed: Bob's replies and our reviews of them
+  (`bob/evidence-files/sessions/`) and one real hook firing (`evidence/hooks/`). *(Planned —
+  see bob/EVIDENCE-TODO.md)*: screenshots, session exports and the Bobalytics export.
 - **MCP context for Bob**: *(planned — nothing wired; see bob/mcp/README.md)*.
 - **Migration onto AWS CardDemo source**: *(planned — license to be confirmed first)*.
 
@@ -57,8 +57,10 @@ bash run.sh     # generate inputs -> compile+run COBOL -> run Java -> field-by-f
 ```
 
 ## How a change flows
-COBOL → Bob explains (cobol-explainer skill) → rule catalog → Bob writes Java → parity hook runs
-compile→run→parity → mismatch → Bob diagnoses and fixes → green → `evidence/hooks/<ts>.log` + CI gate.
+COBOL → Bob explains (cobol-explainer skill) → rule catalog → Java twin changed (the twins here were
+written with Claude Code; Bob has so far made a comment-only edit) → parity hook runs
+compile→run→parity → `evidence/hooks/<ts>.log` + CI gate. The "mismatch → Bob diagnoses and fixes"
+loop is the intended design; it has not been demonstrated with Bob yet.
 
 ## The four Bob governance layers (bob/)
 - `bob/rules.md` — global rules: COMP-3/PIC → BigDecimal, preserve COBOL `ROUNDED` + truncation,
@@ -70,17 +72,19 @@ compile→run→parity → mismatch → Bob diagnoses and fixes → green → `e
 - `bob/hooks/parity.sh` — compile → run → parity; exits non-zero on any parity FAIL and logs to
   `evidence/hooks/`. `hooks.example.json` is the fragment for `.bob/settings.json` (format checked
   against bob.ibm.com/docs). Per those docs a `PostToolUse` hook is **non-blocking**, so it
-  records parity after an edit rather than stopping Bob; whether it has fired inside a Bob
-  session is not yet evidenced.
+  records parity after an edit rather than stopping Bob. It has fired inside a Bob session once
+  (Bob's `apply_diff` edit, `evidence/hooks/20261017T163338Z.log`, 64/64 PASS); a FAIL firing
+  has not been captured.
 - `bob/mcp/README.md` — MCP context is **PLANNED (not wired)** — recorded honestly, with the
   security rule from the docs (secrets via env vars, never committed).
 
 ## Judging fit
 - **Tool Usage & Depth of Adoption (30%)** — the `bob/` layer (rules, skill, hook, MCP plan) and
-  real `evidence/` files (committed runs, a hook log) are in the repo. What is **not** yet in the
-  repo is proof of Bob itself doing the work: session recordings, real hook firings, screenshots
-  and a Bobalytics export still have to be gathered from the driving VM (`bob/EVIDENCE-TODO.md`).
-  The catalogs were drafted with Claude Code, not Bob.
+  real `evidence/` files (committed runs, hook logs) are in the repo, including one **real hook
+  firing** from a Bob edit and Bob's own rule explanation with our review of its errors. Still
+  missing: screenshots, session exports and a Bobalytics export (`bob/EVIDENCE-TODO.md`).
+  The Java twins and the catalogs were drafted with Claude Code; Bob explained rules and made a
+  comment-only edit.
 - **Innovation & Relevance (30%)** — parity against a **real COBOL reference**. To be transparent
   about provenance: the reference programs are **original programs the team wrote**, validated by
   running them under GnuCOBOL — not a curated sample and not a staged toy. Migration onto

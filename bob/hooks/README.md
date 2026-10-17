@@ -13,12 +13,12 @@
   `PreToolUse` and `UserPromptSubmit` can block, with exit 2. So this hook *records* parity
   after an edit; it does not stop Bob. To make Bob stop on a FAIL you would need a different
   design (e.g. a PreToolUse gate) — not built.
-- Tool names: the hooks page only uses `write_file` as an example. Bob's tools page
-  (https://bob.ibm.com/docs/ide/core-concepts/tools) lists the write tools as `write_to_file`,
-  `apply_diff` and `insert_content`. **Evidence on 2026-10-17:** with the matcher `^write_file$`,
-  a Bob Code-mode edit of an existing file produced **no hook log**, so that matcher did not
-  match. The matcher now covers all of these names; whether Bob's hook matcher uses the same
-  names as its tools page is still **unconfirmed** until a real firing is captured.
-- Not confirmed: that this exact hook has fired inside a Bob session. The one committed
-  `evidence/hooks/*.log` was produced by running `parity.sh` directly. Real hook firings must be
-  copied from the Oracle VM (see `bob/EVIDENCE-TODO.md`).
+- Tool names: the hooks page only uses `write_file` as an example. **Confirmed on 2026-10-17:**
+  Bob's `apply_diff` edit triggers a `PostToolUse` hook; a names-only diagnostic recorded
+  `grep`, `read_file` and `apply_diff` (`evidence/hooks/bob-tool-names-20261017.log`). The earlier
+  matcher `^write_file$` did not match an edit and no log appeared. The example matcher also lists
+  `write_to_file`, `insert_content` and `search_and_replace` (names from Bob's tools page);
+  those three have **not** been seen firing.
+- Real firing: Bob's `apply_diff` of `java/TxnPost.java` produced `evidence/hooks/20261017T163338Z.log`
+  and `evidence/runs/20261017T163340Z` (64/64 PASS). Because PostToolUse is non-blocking, a FAIL
+  would be recorded in the log but would not stop Bob; a FAIL firing has not been captured.
