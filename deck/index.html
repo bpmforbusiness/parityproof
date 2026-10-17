@@ -36,7 +36,7 @@
   <div class="rule">
     <div class="card"><h3>✔ It runs</h3><p>Two original COBOL batch programs compiled under GnuCOBOL; Java 21 twins; edge-case input generators. One command: <code>bash run.sh</code>.</p></div>
     <div class="card"><h3>✔ It proves</h3><p><b>100% field parity (64/64 fields)</b>, and it catches real divergence (injected rounding bug → 83% on ACCOUNT-INT, exact fields pinpointed).</p></div>
-    <div class="card"><h3>✔ It is central to IBM Bob</h3><p>Bob explains the rules (Ask), plans changes (Plan) and edits the Java (Code); a parity hook re-runs the proof after Bob's edits (one real firing is logged). Sessions and reviews are committed.</p></div>
+    <div class="card"><h3>✔ It is central to IBM Bob</h3><p>Bob explains the rules (Ask mode), plans a change, and edits the Java (Agent mode); a parity hook re-runs the proof after Bob's edits (one real firing is logged). Sessions and reviews are committed.</p></div>
   </div>
   <p class="lead" style="margin-top:24px;font-size:16px;max-width:11in"><b>Team:</b> Abdul Qaadir (Java lead · Bob driver) · Satish (Cloud · CI) · Karthik (Business analysis · story)</p>
   <div class="foot">github.com/bpmforbusiness/parityproof · original COBOL batch programs → Java (AWS CardDemo: planned, license TBC)</div>
@@ -61,7 +61,7 @@
   <p class="lead" style="font-size:19px">The first thing any bank wants is a guarantee the rewrite is behaviorally identical. We built the mechanism that delivers it.</p>
   <div class="rule">
     <div class="card"><h3>Most teams</h3><p>Show generated Java → judge sees code, must trust it.</p></div>
-    <div class="card"><h3>ParityProof</h3><p>Adds <b style="color:#3fb950">a running proof the Java matches the COBOL byte-for-byte</b>, with Bob in the loop (Ask / Plan / Code).</p></div>
+    <div class="card"><h3>ParityProof</h3><p>Adds <b style="color:#3fb950">a running proof the Java matches the COBOL byte-for-byte</b>, with Bob in the loop (Ask / Agent modes).</p></div>
     <div class="card"><h3>Judging edge</h3><p>Correctness + explainability is the defensible innovation, not the generation itself.</p></div>
   </div>
   <div class="stat">
@@ -103,13 +103,13 @@
   <div class="kicker">How IBM Bob is central</div>
   <h2>Bob in the loop at every step</h2>
   <div class="rule">
-    <div class="card"><h3>Ask — extract rules</h3><p>Bob explained TXN-POST as business rules with source-line citations — all citations verified. Review caught its mistakes and kept its real finding (batch total repeated on every record; no per-account grouping).</p></div>
-    <div class="card"><h3>Plan — plan a change</h3><p>Bob planned a comment-only change to the Java twin, citing the COBOL lines, with a parity run as the acceptance gate.</p></div>
-    <div class="card"><h3>Code — edit the Java</h3><p>Bob made a comment-only edit with <code>apply_diff</code>; the <b>parity hook fired automatically</b> and logged <b>64/64 PASS</b> (evidence/hooks/). A FAIL firing is not yet captured.</p></div>
+    <div class="card"><h3>Ask — extract rules (skill used)</h3><p>Bob explained TXN-POST as business rules with source-line citations — all citations verified. Review caught its mistakes and kept its real finding (batch total repeated on every record; no per-account grouping).</p></div>
+    <div class="card"><h3>Plan a change (in Ask mode)</h3><p>Bob planned a comment-only change to the Java twin, citing the COBOL lines, with a parity run as the acceptance gate.</p></div>
+    <div class="card"><h3>Agent — edit the Java</h3><p>Bob made a comment-only edit with <code>apply_diff</code>; the <b>parity hook fired automatically</b> and logged <b>64/64 PASS</b> (evidence/hooks/). A FAIL firing is not yet captured.</p></div>
   </div>
   <div class="rule" style="grid-template-columns:1fr 1fr; margin-top:14px">
     <div class="card"><h3>Governance</h3><p>Rules file (COMP-3 → BigDecimal, COBOL truncation, cite source lines) + cobol-explainer skill + parity hook script.</p></div>
-    <div class="card"><h3>Adoption evidence</h3><p>Bob replies and our reviews of them are committed under <b>bob/evidence-files/</b>. Screenshots and the Bobalytics export are still to be added.</p></div>
+    <div class="card"><h3>Adoption evidence</h3><p>Bob replies, our reviews of them and six screenshots (skill used, hooks active, edit) are committed under <b>bob/evidence-files/</b>. The Bobalytics export is still to be added.</p></div>
   </div>
 </div>
 
@@ -120,7 +120,7 @@
   <p class="lead" style="font-size:17px; margin-bottom:10px">
     <span class="pill">GnuCOBOL 3.2</span><span class="pill">Java 21 / BigDecimal</span><span class="pill">Single-file Java, no build step</span>
     <span class="pill">Bash pipeline (run.sh)</span><span class="pill">Static HTML dashboard</span>
-    <span class="pill">GitHub Actions (written)</span><span class="pill">Dockerfile (not yet built)</span><span class="pill">IBM Bob (Ask / Plan / Code)</span>
+    <span class="pill">GitHub Actions (written)</span><span class="pill">Dockerfile (not yet built)</span><span class="pill">IBM Bob (Ask / Agent modes)</span>
   </p>
   <div class="rule">
     <div class="card"><h3>Correctness infrastructure</h3><p>Copybook-driven field diff; BigDecimal arithmetic; signed and COMP-3 fields; fixed-width I/O so diffs are exact.</p></div>

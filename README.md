@@ -43,8 +43,9 @@ run.sh      the whole pipeline, all programs; non-zero exit unless every program
 ```
 - **Live dashboard deploy** (Azure Static Web Apps / GitHub Pages): *(planned)*.
 - **Bob adoption evidence**: partly done. Committed: Bob's replies and our reviews of them
-  (`bob/evidence-files/sessions/`) and one real hook firing (`evidence/hooks/`). *(Planned —
-  see bob/EVIDENCE-TODO.md)*: screenshots, session exports and the Bobalytics export.
+  (`bob/evidence-files/sessions/`), six screenshots with captions (`bob/evidence-files/screenshots/`)
+  and one real hook firing (`evidence/hooks/`). *(Planned — see bob/EVIDENCE-TODO.md)*: a session
+  export and the Bobalytics export.
 - **MCP context for Bob**: *(planned — nothing wired; see bob/mcp/README.md)*.
 - **Migration onto AWS CardDemo source**: *(planned — license to be confirmed first)*.
 
@@ -81,8 +82,9 @@ loop is the intended design; it has not been demonstrated with Bob yet.
 ## Judging fit
 - **Tool Usage & Depth of Adoption (30%)** — the `bob/` layer (rules, skill, hook, MCP plan) and
   real `evidence/` files (committed runs, hook logs) are in the repo, including one **real hook
-  firing** from a Bob edit and Bob's own rule explanation with our review of its errors. Still
-  missing: screenshots, session exports and a Bobalytics export (`bob/EVIDENCE-TODO.md`).
+  firing** from a Bob edit, Bob's own rule explanation with our review of its errors, and
+  screenshots (skill used, hooks active, edit). Still missing: a session export and the Bobalytics
+  export (`bob/EVIDENCE-TODO.md`). Bob's dedicated Plan mode was not used (plans came from Ask mode).
   The Java twins and the catalogs were drafted with Claude Code; Bob explained rules and made a
   comment-only edit.
 - **Innovation & Relevance (30%)** — parity against a **real COBOL reference**. To be transparent

@@ -29,6 +29,9 @@ Where each thing lives HERE vs. WHERE ON THE VM it comes from:
   injected-FAIL) is evidence the runner catches divergence — use it in the demo.
 
 ## 3. Screenshots of Bob in action
+- **Status (2026-10-17):** six screenshots are committed with captions in
+  `bob/evidence-files/screenshots/README.md`. Remaining: retake `06-hook-log.png` with the NEW log
+  (`20261017T163338Z.log`) open, and Bob's Plan mode if you want it. Original request below.
 - **Repo target:** `bob/evidence-files/screenshots/`  (contains only PLACEHOLDER.md)
 - **From the VM:** screenshots of Bob in:
   - **Ask mode** — producing a catalog entry with source-line citations
